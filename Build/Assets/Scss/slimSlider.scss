@@ -46,39 +46,41 @@ body {
     }
   }
 
-  div.arrow {
-    width: 6vmin;
-    height: 6vmin;
-    box-sizing: border-box;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: rotate(-45deg);
+  .slider-wrapper {
+    div.arrow {
+      width: 6vmin;
+      height: 6vmin;
+      box-sizing: border-box;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: rotate(-45deg);
 
-    &::before {
-      content: "";
-      width: 100%;
-      height: 100%;
-      border-width: .8vmin .8vmin 0 0;
-      border-style: solid;
-      border-color: #fafafa;
-      transition: .2s ease;
-      display: block;
-      transform-origin: 100% 0;
-    }
+      &::before {
+        content: "";
+        width: 100%;
+        height: 100%;
+        border-width: .8vmin .8vmin 0 0;
+        border-style: solid;
+        border-color: #fafafa;
+        transition: .2s ease;
+        display: block;
+        transform-origin: 100% 0;
+      }
 
-    &::after {
-      content: "";
-      float: left;
-      position: relative;
-      top: -100%;
-      width: 100%;
-      height: 100%;
-      border-width: 0 .8vmin 0 0;
-      border-style: solid;
-      border-color: #fafafa;
-      transform-origin: 100% 0;
-      transition: .2s ease;
+      &::after {
+        content: "";
+        float: left;
+        position: relative;
+        top: -100%;
+        width: 100%;
+        height: 100%;
+        border-width: 0 .8vmin 0 0;
+        border-style: solid;
+        border-color: #fafafa;
+        transform-origin: 100% 0;
+        transition: .2s ease;
+      }
     }
   }
 }
