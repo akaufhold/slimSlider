@@ -59,6 +59,7 @@ class Slider {
 		}
 		finally{
 			this.images.length && this.addToImageContainer();
+			//console.log(this.#sliderContainer);
 			this.#sliderElements = this.#sliderContainer.childNodes;
 			this.opts.type=='slider' && this.createSlider();
 		}
@@ -156,7 +157,7 @@ class Slider {
 			return await this.createImage(path)
 		}
 		catch(err){
-			//console.error(err)
+			console.error(err)
 		}
 	};
 
@@ -211,7 +212,7 @@ class SliderElement extends Slider {
 		el.style.margin = this.opts.marginImage;
 		el.style.gridRowStart	= 1;
 		el.style.gridColumnStart = 1;
-		this.setElementDimensions(el);
+		this.setElementDimensions(this.#sliderElement);
 	}
 }
 
