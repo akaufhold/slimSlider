@@ -1,0 +1,26 @@
+{
+  "static": {
+    "webpack": {
+      "paths": {
+        "output": "../Public/",
+        "public": "../",
+        "manifest": "Public/"
+      }
+    },
+    "paths": {
+      "assets": "./Assets",
+      "public": {
+        "javascripts": "JavaScript/",
+        "stylesheets": "StyleSheet/",
+        "images": "Images/",
+        "fonts": "Fonts/"
+      }
+    },
+    "copyFiles": [
+      {
+        "from": "./Assets/Static",
+        "to": "[path][name].[ext]"
+      }
+    ]
+  }
+}
