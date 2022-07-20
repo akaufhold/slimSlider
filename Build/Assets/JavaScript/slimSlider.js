@@ -5,7 +5,7 @@ require("../Scss/slimSlider.scss");
 class Slider {
 	#sliderContainer;
 	#sliderElements;
-	#imgsLoaded = false;
+	imgsLoaded = false;
 	
 	imgCurIndex = 0;
 	lastInd;
@@ -51,7 +51,7 @@ class Slider {
 	async init() {
 		try{
 			this.#sliderContainer 	= document.querySelector(this.opts.sliderClass);
-			this.#imgsLoaded 		 		= await this.loadAllImages(this.opts);
+			this.imgsLoaded 		 		= await this.loadAllImages(this.opts);
 		}
 		catch(err){
 			console.error(err);
@@ -87,6 +87,7 @@ class Slider {
 	}
 
 	showNextSlide() {
+		console.log(this.#sliderElements);
 		let curSlide = this.#sliderElements[this.imgCurIndex];
 		curSlide.classList.add('cur-image');
 		//curSlide.style.display = 'block';
@@ -102,6 +103,7 @@ class Slider {
 			new Error('Slider not showing new image');
 		}
 		finally{
+			//console.log(this.opts.loop);
 			let lastSlide = (this.imgCurIndex+1) === this.imgCount;
 			if (this.opts.loop || (!lastSlide)){
 				await this.loop();
@@ -121,34 +123,17 @@ class Slider {
 		}
 	}
 
-	getElementsMaxHeight(){
-		let sliderElementsHeights = [...this.#sliderElements].map(el => Number(el.height));
-		return Math.min(...sliderElementsHeights);
-	}
-
 	setContainerStyles(){
 		this.#sliderContainer.style.gridTemplateColumns = `${this.opts.slidesOnScreen}fr`;
 		this.#sliderContainer.style.transitionProperty 	= this.getCssTransitionProp();
 	}
 
-	setElementDimensions(el){
-		el.style.maxWidth = `${100/this.opts.slidesOnScreen}%`;
-		el.style.maxHeight = this.opts.transition!=='fade'?`${this.getElementsMaxHeight()}px`:this.elementsHeights;
-	}
-
-	setElementStyles(){
-		this.#sliderElements.forEach((el) => {
-			el.style.margin = this.opts.marginImage;
-			el.style.gridRowStart	= 1;
-			el.style.gridColumnStart = 1;
-			this.setElementDimensions(el);
-		});
-	}
-
 	async createSlider() {
 		try{
 			this.setContainerStyles();
-			this.setElementStyles();
+			this.#sliderElements.forEach((el) => {
+				new SliderElement(el);
+			});
 			await this.slideTransition();
 		}
 		catch(err){
@@ -166,20 +151,22 @@ class Slider {
 		});
 	}
 
-	async deleteImages() {
-		this.#sliderContainer.innerHTML = ''; 
-	}
-
 	async loadSingleImage (path) {
 		try {
 			return await this.createImage(path)
 		}
-		catch(err){console.error(err)}
+		catch(err){
+			//console.error(err)
+		}
 	};
+
+	async deleteImages() {
+		this.#sliderContainer.innerHTML = ''; 
+	}
 
 	async addToImageContainer () {
 		this.deleteImages();
-		for(const loadedImg of this.#imgsLoaded){
+		for(const loadedImg of this.imgsLoaded){
 			this.opts.type=='gallery' && loadedImg.classList.add('parallel');
 			this.#sliderContainer.insertAdjacentElement('beforeend', loadedImg);
 		};
@@ -187,7 +174,7 @@ class Slider {
 
 	async loadAllImages () {
 		try{
-			if (!this.#imgsLoaded){
+			if (!this.imgsLoaded){
 				return await Promise.all(this.images.map(async image => this.loadSingleImage(image)));
 			}		
 		}catch(error){
@@ -196,8 +183,36 @@ class Slider {
 	};
 }
 
-class SliderElement extends Slider{
+class SliderElement extends Slider {
+	#sliderElement;
 
+	constructor(options,images,sliderElement){
+		super (options, images);
+		this.#sliderElement = sliderElement;
+	}
+
+	init(){
+		console.log('Init Sliderelement');
+		this.setElementStyles();
+	}
+
+	getElementsMaxHeight(){
+		console.log(this.#sliderElement);
+		let sliderElementsHeights = [...images].map(el => Number(el.height));
+		return Math.min(...sliderElementsHeights);
+	}
+
+	setElementDimensions(el){
+		el.style.maxWidth = `${100/this.opts.slidesOnScreen}%`;
+		el.style.maxHeight = this.opts.transition!=='fade'?`${this.getElementsMaxHeight()}px`:this.elementsHeights;
+	}
+
+	setElementStyles(){
+		el.style.margin = this.opts.marginImage;
+		el.style.gridRowStart	= 1;
+		el.style.gridColumnStart = 1;
+		this.setElementDimensions(el);
+	}
 }
 
 const slider1 = new Slider(
