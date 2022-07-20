@@ -40,10 +40,10 @@ class Slider {
 		for (const option of Object.entries(options)){
 			this.options[option[0]] = options[option[0]] || option[1];
 		}
-		this.opts 								= this.options;
-		this.images 							= images;
-		this.imgCount 						= images.length;
-		this.lastInd							= this.imgCount-1;
+		this.opts = this.options;
+		this.images = images;
+		this.imgCount = images.length;
+		this.lastInd = this.imgCount-1;
 		this.loop && (this.interval = '');
 		this.init();
 	}
@@ -59,7 +59,6 @@ class Slider {
 		}
 		finally{
 			this.images.length && this.addToImageContainer();
-			//console.log(this.#sliderContainer);
 			this.#sliderElements = this.#sliderContainer.childNodes;
 			this.opts.type=='slider' && this.createSlider();
 		}
@@ -88,7 +87,6 @@ class Slider {
 	}
 
 	showNextSlide() {
-		console.log(this.#sliderElements);
 		let curSlide = this.#sliderElements[this.imgCurIndex];
 		curSlide.classList.add('cur-image');
 		//curSlide.style.display = 'block';
@@ -132,8 +130,9 @@ class Slider {
 	async createSlider() {
 		try{
 			this.setContainerStyles();
-			this.#sliderElements.forEach((el) => {
-				new SliderElement(el);
+			this.#sliderElements.forEach((el,slideIndex) => {
+				console.log(this.opts);
+				new SliderElement(this.opts,el,this.#sliderElements);
 			});
 			await this.slideTransition();
 		}
@@ -184,22 +183,25 @@ class Slider {
 	};
 }
 
-class SliderElement extends Slider {
-	#sliderElement;
+class SliderElement {
+	childnode;
+	opts;
 
-	constructor(options,images,sliderElement){
-		super (options, images);
-		this.#sliderElement = sliderElement;
-	}
-
-	init(){
-		console.log('Init Sliderelement');
-		this.setElementStyles();
+	constructor(
+		options,
+		sliderElement,
+		allSliderElement
+	){
+		for (const option of Object.entries(options)){
+			this.opts = options;
+		}
+		this.childnode = sliderElement;
+		this.setElementStyles(this.childnode);
 	}
 
 	getElementsMaxHeight(){
-		console.log(this.#sliderElement);
-		let sliderElementsHeights = [...images].map(el => Number(el.height));
+		console.log(this.childnode);
+		let sliderElementsHeights = [...allSliderElement].map(el => Number(el.height));
 		return Math.min(...sliderElementsHeights);
 	}
 
@@ -208,11 +210,11 @@ class SliderElement extends Slider {
 		el.style.maxHeight = this.opts.transition!=='fade'?`${this.getElementsMaxHeight()}px`:this.elementsHeights;
 	}
 
-	setElementStyles(){
+	setElementStyles(el){
 		el.style.margin = this.opts.marginImage;
 		el.style.gridRowStart	= 1;
 		el.style.gridColumnStart = 1;
-		this.setElementDimensions(this.#sliderElement);
+		this.setElementDimensions(el);
 	}
 }
 
