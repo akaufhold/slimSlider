@@ -24,7 +24,7 @@ body {
     display: block;
     transition-duration: .3s;
     transform-style: preserve-3d;
-    will-change: transform, opacity;
+    will-change: auto;
 
     &.parallel {
       width: 40rem;
