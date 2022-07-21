@@ -2,6 +2,21 @@
 
 require("../Scss/slimSlider.scss");
 
+class SliderHelpers {
+	sec;
+
+	constructor(sec){
+		this.sec = sec;
+	}
+
+	static wait (sec) {
+		return new Promise((res) => {setTimeout(res, sec * 1000)});
+	}
+
+	static loop(sec) {
+		return new Promise((res) => {this.interval = setInterval(res, sec * 1000)})
+	}
+}
 class Slider {
 	#sliderContainer;
 	#sliderWrapper = false;
@@ -53,6 +68,7 @@ class Slider {
 	async init() {
 		try{
 			this.#sliderContainer 	= document.querySelector(`.${this.opts.sliderClass}`);
+			//console.log(this.#sliderContainer);
 			this.imgsLoaded 		 		= await this.#loadAllImages(this.opts);
 		}
 		catch(err){
@@ -118,25 +134,29 @@ class Slider {
 		}
 	}
 
-	setContainerStyles(){
-		this.#sliderContainer.style.gridTemplateColumns = `${this.opts.slidesOnScreen}fr`;
-		this.#sliderContainer.style.transitionProperty 	= this.getCssTransitionProp();
-	}
-
-	wrap(el, wrapper) {
-    el.parentNode.insertBefore(wrapper, el);
-    wrapper.appendChild(el);
+	setContainerStyles(el){
+		let gridTemplateColumnsString = '';
+		el.style.display = 'grid';
+		el.style.justifyContent = 'center';
+		for (let i=0; i<this.opts.slidesOnScreen; i++){
+			gridTemplateColumnsString += `1fr ${this.opts.marginImage!==0?this.opts.marginImage:''}`;
+		}
+		el.style.gridTemplateColumns = `${gridTemplateColumnsString.slice(0,-1)}`;
+		el.style.transitionProperty 	= this.getCssTransitionProp();
 	}
 
 	async createSlider() {
 		try{
-			this.setContainerStyles();
+			let parentStyles = this.#sliderContainer;
+			console.log(parentStyles);
 			this.createSliderElements();
 			if (this.opts.slidesOnScreen > 1){
-				let sliderWrapper = new SliderWrapper(this.opts,this.sliderElements);
-				this.#sliderContainer.innerHTML = '';
-				this.#sliderContainer.insertAdjacentElement('afterbegin',sliderWrapper.wrapper);
+				this.createWrapper();
+				this.wait(0.2);
+				this.#sliderWrapper = parentStyles = document.querySelector(`.${this.opts.sliderWrapperClass}`);
 			}
+			console.log(parentStyles);
+			this.setContainerStyles(parentStyles);
 		}
 		catch(err){
 			console.log(err);
@@ -144,14 +164,22 @@ class Slider {
 		}
 	}
 
+	async createWrapper(){
+		let sliderWrapper = await new SliderWrapper(this.opts,this.sliderElements).then((res) => {
+			console.log(res);
+			this.#sliderContainer.innerHTML = '';
+			this.#sliderContainer.insertAdjacentElement('afterbegin',sliderWrapper.wrapper);
+		});
+
+	}
+
 	createSliderElements(){
 		this.images.length && this.deleteImages();
-		this.imgsLoaded.forEach((el,slideIndex) => {
-			let sliderElement = new SliderElement(this.opts,el);
+		this.imgsLoaded.forEach((el,index) => {
+			let sliderElement = new SliderElement(this.opts,el,index);
 			this.sliderElements.push(sliderElement.childnode);
 			this.addImageToContainer(sliderElement.childnode);
 		});
-		console.log(this.sliderElements);
 	}
 
 	async addImageToContainer (el) {
@@ -198,60 +226,82 @@ class SliderWrapper{
 	#opts;
 
 	constructor(options, allSliderElements){
-		this.#opts = options;
-		this.allSliderElements = allSliderElements;
-		this.wrapper = this.createWrapper();
-		this.setWrapperHeight(this.wrapper);
+		return (async () => {
+			this.#opts = options;
+			this.allSliderElements = allSliderElements;
+			this.wrapper = await this.createWrapper();
+			this.wrapper = await this.wrap(this.allSliderElements,this.wrapper);
+			await this.init();
+			console.log("test",this.wrapper);
+		})();
 	}
 
-	createWrapper(){
-		let wrapper = document.createElement('div');
-		wrapper.classList.add(this.#opts.sliderWrapperClass);
-		wrapper.innerHTML = this.allSliderElements; 
-		return wrapper;
+	async init(){
+		return new Promise((resolve) => {
+			this.setWrapperHeight(this.wrapper);
+			resolve();
+		})
+	}
+
+	async wrap (el, wrapper) {
+		return new Promise((resolve) => {
+			el.forEach(el => wrapper.appendChild(el));
+			resolve(wrapper);
+		});
+	}
+
+	async createWrapper(){
+		return new Promise((resolve,reject) => {	
+			let wrapper = document.createElement('div');
+			wrapper.classList.add(this.#opts.sliderWrapperClass);
+			resolve(wrapper);
+		})
 	}
 
 	getWrapperMaxHeight(){
-		let sliderElementsHeights = [...allSliderElement].map(el => Number(el.height));
+		let sliderElementsHeights = [...this.allSliderElements].map(el => {
+			console.log(el.clientHeight);
+			return Number(el.height);
+		});
 		return Math.min(...sliderElementsHeights);
 	}
 
 	setWrapperHeight(el){
-		el.style.maxHeight = this.#opts.transition!=='fade'?`${this.getElementsMaxHeight()}px`:this.elementsHeights;
+		let wrapperMaxHeight = this.#opts.transition!=='fade'?`${this.getWrapperMaxHeight()}px`:this.elementsHeights;
+		el.style.maxHeight = wrapperMaxHeight;
 	}
 }
 
 class SliderElement {
 	childnode;
 	opts;
+	index;
 
 	constructor(
 		options,
-		sliderElement
+		sliderElement,
+		index
 	){
 		for (const option of Object.entries(options)){
 			this.opts = options;
 		}
+		this.index = index;
 		this.childnode = sliderElement;
 		this.setElementStyles(this.childnode);
 	}
 
-	setElementDimensions(el){
-		el.style.maxWidth = `${100/this.opts.slidesOnScreen}%`;
-	}
-
 	setElementStyles(el){
-		el.style.margin = this.opts.marginImage;
+		let curColumn = (this.index+1)%this.opts.slidesOnScreen;
 		el.style.gridRowStart	= 1;
-		el.style.gridColumnStart = 1;
-		this.setElementDimensions(el);
+		el.style.gridColumnStart = `${(curColumn===0)?this.opts.slidesOnScreen:curColumn}`;
 	}
 }
 
 const slider1 = new Slider(
 	{
 		type:'slider',
-		sliderClass: 'slider'
+		sliderClass: 'slider',
+		slidesOnScreen: 3
 	},
-	'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg'
+	'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg'
 );
