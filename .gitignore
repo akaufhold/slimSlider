@@ -12,6 +12,7 @@ Build/yarn.lock
 
 *.txt
 *.log
+*.code-workspace
 
 stackfactory.code-workspace
 index.min.html
