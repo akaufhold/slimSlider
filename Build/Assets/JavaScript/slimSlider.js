@@ -3,10 +3,9 @@
 require("../Scss/slimSlider.scss");
 
 class SliderHelpers {
-	sec;
 
-	constructor(sec){
-		this.sec = sec;
+	constructor(){
+
 	}
 
 	static wait (sec) {
@@ -14,7 +13,30 @@ class SliderHelpers {
 	}
 
 	static loop(sec) {
-		return new Promise((res) => {this.interval = setInterval(res, sec * 1000)})
+		return new Promise((res) => {setInterval(res, sec * 1000)})
+	}
+
+	static waitForElement(querySelector, timeout){
+		return new Promise((resolve, reject)=>{
+			var timer = false;
+
+			if(document.querySelectorAll(querySelector).length) return resolve();
+			const observer = new MutationObserver(()=>{
+				if(document.querySelectorAll(querySelector).length){
+					observer.disconnect();
+					if(timer !== false) clearTimeout(timer);
+					return resolve();
+				}
+			});
+			observer.observe(document.body, {
+				childList: true, 
+				subtree: true
+			});
+			if(timeout) timer = setTimeout(()=>{
+				observer.disconnect();
+				reject();
+			}, timeout);
+		});
 	}
 }
 class Slider {
@@ -41,7 +63,8 @@ class Slider {
 		transition: 'fade',
 		transitionTiming: 'linear',
 		slidesOnScreen: 1,
-		marginImage: 0
+		margin: 0,
+		zoomOnHover: 1
 	}
 
 	transitions = {
@@ -61,7 +84,7 @@ class Slider {
 		this.images = images;
 		this.imgCount = images.length;
 		this.lastInd = this.imgCount-1;
-		this.loop && (this.interval = '');
+		this.opts.loop && (this.interval = '');
 		this.init();
 	}
 
@@ -79,14 +102,6 @@ class Slider {
 			this.opts.type=='slider' && this.createSlider();
 			await this.slideTransition();
 		}
-	}
-
-	wait (sec) {
-		return new Promise((res) => {setTimeout(res, sec * 1000)});
-	}
-
-	loop() {
-		return new Promise((res) => {this.interval = setInterval(res, this.opts.delay * 1000)})
 	}
 
 	clearLoop() {
@@ -117,7 +132,7 @@ class Slider {
 			//console.log(this.opts.loop);
 			let lastSlide = (this.imgCurIndex+1) === this.imgCount;
 			if (this.opts.loop || (!lastSlide)){
-				await this.loop();
+				this.interval = await SliderHelpers.loop(this.opts.delay);
 				this.lastInd = this.imgCurIndex;
 				lastSlide ? this.imgCurIndex=0 : this.imgCurIndex++;
 				await this.slideTransition();
@@ -135,27 +150,29 @@ class Slider {
 	}
 
 	setContainerStyles(el){
+		this.setContainerStylesGrid(el);
+		el.style.transitionProperty 	= this.getCssTransitionProp();
+	}
+
+	setContainerStylesGrid(el){
 		let gridTemplateColumnsString = '';
 		el.style.display = 'grid';
 		el.style.justifyContent = 'center';
 		for (let i=0; i<this.opts.slidesOnScreen; i++){
-			gridTemplateColumnsString += `1fr ${this.opts.marginImage!==0?this.opts.marginImage:''}`;
+			gridTemplateColumnsString += `1fr `;
 		}
+		this.opts.margin && (el.style.gridColumnGap = this.opts.margin+'px');
 		el.style.gridTemplateColumns = `${gridTemplateColumnsString.slice(0,-1)}`;
-		el.style.transitionProperty 	= this.getCssTransitionProp();
 	}
 
 	createSlider() {
 		try{
 			let parentStyles = this.#sliderContainer;
-			console.log(parentStyles);
 			this.createSliderElements();
 			if (this.opts.slidesOnScreen > 1){
 				this.createWrapper();
-				this.wait(0.2);
 				this.#sliderWrapper = parentStyles = document.querySelector(`.${this.opts.sliderWrapperClass}`);
 			}
-			console.log(parentStyles);
 			this.setContainerStyles(parentStyles);
 		}
 		catch(err){
@@ -165,9 +182,8 @@ class Slider {
 	}
 
 	createWrapper(){
-		let sliderWrapper = new SliderWrapper(this.opts,this.sliderElements);
-		this.#sliderContainer.innerHTML = '';
-		this.#sliderContainer.insertAdjacentElement('afterbegin',sliderWrapper.wrapper);
+		let sliderWrapper = new SliderWrapper(this.opts,this.#sliderContainer,this.sliderElements);
+		this.#sliderWrapper = document.querySelector(sliderWrapper.wrapper.className);
 	}
 
 	createSliderElements(){
@@ -218,24 +234,29 @@ class Slider {
 }
 
 class SliderWrapper{
+	container;
 	wrapper;
+	wrapperDomElement;
 	allSliderElements;
 	#opts;
 
-	constructor(options, allSliderElements){
+	constructor(options, container, allSliderElements){
 		this.#opts = options;
+		this.container = container;
 		this.allSliderElements = allSliderElements;
-		this.wrapper = this.createWrapper();
-		this.wrapper = this.wrap(this.allSliderElements,this.wrapper);
 		this.init();
-		console.log("test",this.wrapper);
 	}
 
 	init(){
-		this.setWrapperHeight(this.wrapper);
+		this.wrapper = this.createWrapper();
+		this.wrapper = this.wrapAround(this.allSliderElements,this.wrapper);
+		this.container.innerHTML = '';
+		this.container.insertAdjacentElement('afterbegin',this.wrapper);
+		this.wrapperDomElement = document.querySelector(`.${this.#opts.sliderWrapperClass}`);
+		this.setWrapperHeight();
 	}
 
-	wrap (el, wrapper) {
+	wrapAround (el, wrapper) {
 			el.forEach(el => wrapper.appendChild(el));
 			return wrapper;
 	}
@@ -246,17 +267,18 @@ class SliderWrapper{
 		return wrapper;
 	}
 
-	getWrapperMaxHeight(){
-		let sliderElementsHeights = [...this.allSliderElements].map(el => {
-			console.log(el.clientHeight);
-			return Number(el.height);
-		});
+	async getWrapperMaxHeight(){
+		let sliderElementsHeights = await Promise.all([...this.allSliderElements].map(async (el,index) => {
+			await SliderHelpers.waitForElement(`.${this.#opts.sliderWrapperClass}`,0);
+			return Number(parseInt(window.getComputedStyle(el).height));
+		}));
 		return Math.min(...sliderElementsHeights);
 	}
 
-	setWrapperHeight(el){
-		let wrapperMaxHeight = this.#opts.transition!=='fade'?`${this.getWrapperMaxHeight()}px`:this.elementsHeights;
-		el.style.maxHeight = wrapperMaxHeight;
+	async setWrapperHeight(el){
+		this.getWrapperMaxHeight().then((res) => {
+			this.wrapper.style.maxHeight = `${res}px`;
+		})
 	}
 }
 
@@ -267,21 +289,36 @@ class SliderElement {
 
 	constructor(
 		options,
-		sliderElement,
+		element,
 		index
 	){
 		for (const option of Object.entries(options)){
 			this.opts = options;
 		}
 		this.index = index;
-		this.childnode = sliderElement;
+		this.childnode = element;
+		this.init();
+	}
+
+	init(){
 		this.setElementStyles(this.childnode);
+		this.setElementClasses(this.childnode);
+	}
+
+	setElementSingleStyles(el, style, value){
+		el.style[style] = value;
 	}
 
 	setElementStyles(el){
 		let curColumn = (this.index+1)%this.opts.slidesOnScreen;
-		el.style.gridRowStart	= 1;
-		el.style.gridColumnStart = `${(curColumn===0)?this.opts.slidesOnScreen:curColumn}`;
+		this.setElementSingleStyles(el,'gridRowStart',1);
+		(curColumn===0)
+			?this.setElementSingleStyles(el,'gridColumnStart',this.opts.slidesOnScreen)
+			:this.setElementSingleStyles(el,'gridColumnStart',curColumn);
+	}
+
+	setElementClasses(el){
+		this.opts.zoomOnHover && el.classList.add('zoom');
 	}
 }
 
@@ -289,7 +326,8 @@ const slider1 = new Slider(
 	{
 		type:'slider',
 		sliderClass: 'slider',
-		slidesOnScreen: 3
+		slidesOnScreen: 3,
+		margin: 0
 	},
-	'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg'
+	'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-4.jpg','Public/Images/img-5.jpg','Public/Images/img-6.jpg'
 );
