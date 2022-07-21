@@ -24,6 +24,7 @@ body {
     display: block;
     transition-duration: .3s;
     transform-style: preserve-3d;
+    will-change: transform, opacity;
 
     &.parallel {
       width: 40rem;
@@ -41,6 +42,12 @@ body {
     &.prev-slide {
       opacity: 1;
       z-index: 5;
+    }
+
+    &.zoom {
+      &:hover {
+        transform: scale(1.1);
+      }
     }
   }
 
