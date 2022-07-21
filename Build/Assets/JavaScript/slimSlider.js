@@ -42,6 +42,7 @@ class SliderHelpers {
 		});
 	}
 }
+
 class Slider {
 	#sliderContainer;
 	#sliderWrapper = false;
@@ -112,11 +113,11 @@ class Slider {
 		clearInterval(this.interval);
 	}
 
-	setSliderClassesCur(indexArr) {
+	setCurSlidesClasses(indexArr) {
 		indexArr.forEach((el) => this.sliderElements[el].classList.add(this.curElementClass));
 	}
 
-	setSliderClassesPrev(indexArr) {
+	setPrevSlidesClasses(indexArr) {
 		indexArr.forEach((el) => this.sliderElements[el].classList.add(this.prevElementClass));
 	}
 
@@ -124,14 +125,38 @@ class Slider {
 		this.sliderElements.forEach((el) => el.classList.remove(this.curElementClass,this.prevElementClass));
 	}
 
-	setSliderClasses() {
+	//filterLastElements
+
+	setSliderStyles() {
+		switch (this.opts.transition) {
+			case 'fade':
+				this.setSlideStyles([this.imgCurIndex],'opacity','1');
+				this.setSlideStyles([this.lastInd],'opacity','0');
+				break;
+			case 'fade':
+				this.setSlideStyles([this.imgCurIndex],'opacity','1');
+				this.setSlideStyles([this.lastInd],'opacity','0');
+				break;
+			default:
+				this.setSlideStyles([this.imgCurIndex],'opacity','1');
+				this.setSlideStyles([this.lastInd],'opacity','0');
+				break;
+		}
+	}
+
+	setSlideStyles(indexArr, styleProp, styleVal) {
+		indexArr.forEach((el) => SliderHelpers.setElementStyle(this.sliderElements[el],styleProp,styleVal));
+	}
+
+	setSliderClassesAndStyles() {
 		this.deleteSliderClasses();
-		this.setSliderClassesCur([this.imgCurIndex]);
-		this.setSliderClassesPrev([this.lastInd]);
+		this.setCurSlidesClasses([this.imgCurIndex]);
+		this.setPrevSlidesClasses([this.lastInd]);
+		this.setSliderStyles();
 	}
 
 	showNextSlides() {
-		this.setSliderClasses();
+		this.setSliderClassesAndStyles();
 	}
 
 	async slideTransition() {
@@ -187,7 +212,7 @@ class Slider {
 			let parentStyles = this.#sliderContainer;
 			this.createSliderElements();
 			if (this.opts.slidesPerRow > 1){
-				this.#sliderWrapper = parentStyles = this.createWrapper();
+				this.#sliderWrapper = parentStyles = this.createSliderWrapper();
 			}
 			this.setContainerStyles(parentStyles);
 		}
@@ -197,7 +222,7 @@ class Slider {
 		}
 	}
 
-	createWrapper(){
+	createSliderWrapper(){
 		let sliderWrapper = new SliderWrapper(this.opts,this.#sliderContainer,this.sliderElements);
 		return document.querySelector(`.${sliderWrapper.wrapper.className}`);
 	}
@@ -258,7 +283,7 @@ class SliderWrapper {
 	}
 
 	init(){
-		this.wrapper = this.wrapAround(this.allSliderElements,this.createWrapper());
+		this.wrapper = this.wrapAround(this.allSliderElements,this.createWrapperElement());
 		this.container.innerHTML = '';
 		this.container.insertAdjacentElement('afterbegin',this.wrapper);
 		this.wrapperDomElement = document.querySelector(`.${this.#opts.sliderWrapperClass}`);
@@ -270,7 +295,7 @@ class SliderWrapper {
 			return wrapper;
 	}
 
-	createWrapper() {
+	createWrapperElement() {
 		let wrapper = document.createElement('div');
 		wrapper.classList.add(this.#opts.sliderWrapperClass);
 		return wrapper;
@@ -350,7 +375,7 @@ const slider1 = new Slider(
 	{
 		type:'slider', 
 		sliderClass: 'slider',
-		slidesPerRow: 3,
+		slidesPerRow: 1,
 		slidesRowWrap: true,
 		margin: 0,
 		zoomOnHover: false
