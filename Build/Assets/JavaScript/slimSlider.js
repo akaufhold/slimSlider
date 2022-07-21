@@ -15,6 +15,10 @@ class SliderHelpers {
 		return new Promise((res) => {setInterval(res, sec * 1000)})
 	}
 
+	static setElementStyle(el, styleProp, value) {
+		el.style[styleProp] = value;
+	}
+
 	static waitForElement(querySelector, timeout) {
 		return new Promise((resolve, reject)=> {
 			var timer = false;
@@ -53,9 +57,9 @@ class Slider {
 
 	opts;
 	options = {
+		type: 'slider', /* slider or gallery */
 		sliderClass:"slider",
 		sliderWrapperClass: "slider-wrapper",
-		type: 'slider',
 		loop: true, 
 		autoplay: true,
 		delay: 6,
@@ -126,7 +130,7 @@ class Slider {
 		}
 		catch(err){
 			console.error(err);
-			new Error('Slider not showing new image');
+			new Error('Slider not showing next image');
 		}
 		finally{
 			let lastSlide = (this.imgCurIndex+1) === this.imgCount;
@@ -155,13 +159,13 @@ class Slider {
 
 	setContainerStylesGrid(el) {
 		let gridTemplateColumnsString = '';
-		el.style.display = 'grid';
-		el.style.justifyContent = 'center';
+		SliderHelpers.setElementStyle(el,'display','grid');
+		SliderHelpers.setElementStyle(el,'justifyContent','center');
 		for (let i=0; i<this.opts.slidesPerRow; i++){
 			gridTemplateColumnsString += `1fr `;
 		}
-		this.opts.margin && (el.style.gridColumnGap = this.opts.margin+'px');
-		el.style.gridTemplateColumns = `${gridTemplateColumnsString.slice(0,-1)}`;
+		this.opts.margin && SliderHelpers.setElementStyle(el,'gridColumnGap',`${this.opts.margin}px`);
+		SliderHelpers.setElementStyle(el,'gridTemplateColumns',`${gridTemplateColumnsString.slice(0,-1)}`);
 	}
 
 	createSlider() {
@@ -310,16 +314,12 @@ class SliderElement {
 		this.addImageToContainer(this.childnode);
 	}
 
-	setElementSingleStyles(el, styleProp, value) {
-		el.style[styleProp] = value;
-	}
-
 	setElementStyles(el) {
 		let curColumn = (this.index+1)%this.opts.slidesPerRow;
-		this.setElementSingleStyles(el,'gridRowStart',1);
+		SliderHelpers.setElementStyle(el,'gridRowStart',1);
 		(curColumn===0)
-			?this.setElementSingleStyles(el,'gridColumnStart',this.opts.slidesPerRow)
-			:this.setElementSingleStyles(el,'gridColumnStart',curColumn);
+			?SliderHelpers.setElementStyle(el,'gridColumnStart',this.opts.slidesPerRow)
+			:SliderHelpers.setElementStyle(el,'gridColumnStart',curColumn);
 	}
 
 	setElementClasses(el) {
@@ -334,7 +334,7 @@ class SliderElement {
 
 const slider1 = new Slider(
 	{
-		type:'slider',
+		type:'slider', 
 		sliderClass: 'slider',
 		slidesPerRow: 3,
 		slidesRowWrap: true,
