@@ -112,21 +112,31 @@ class Slider {
 		clearInterval(this.interval);
 	}
 
-	setSliderClasses() {
-		this.sliderElements.forEach((el,ind) => {
-			el.classList.remove(this.curElementClass,this.prevElementClass);
-		});
-		this.sliderElements[this.imgCurIndex].classList.add('cur-image');
-		this.sliderElements[this.lastInd].classList.add(this.prevElementClass);
+	setSliderClassesCur(indexArr) {
+		indexArr.forEach((el) => this.sliderElements[el].classList.add(this.curElementClass));
 	}
 
-	showNextSlide() {
+	setSliderClassesPrev(indexArr) {
+		indexArr.forEach((el) => this.sliderElements[el].classList.add(this.prevElementClass));
+	}
+
+	deleteSliderClasses() {
+		this.sliderElements.forEach((el) => el.classList.remove(this.curElementClass,this.prevElementClass));
+	}
+
+	setSliderClasses() {
+		this.deleteSliderClasses();
+		this.setSliderClassesCur([this.imgCurIndex]);
+		this.setSliderClassesPrev([this.lastInd]);
+	}
+
+	showNextSlides() {
 		this.setSliderClasses();
 	}
 
 	async slideTransition() {
 		try{
-			this.showNextSlide();
+			this.showNextSlides();
 		}
 		catch(err){
 			console.error(err);
