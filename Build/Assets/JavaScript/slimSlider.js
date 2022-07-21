@@ -145,7 +145,7 @@ class Slider {
 		el.style.transitionProperty 	= this.getCssTransitionProp();
 	}
 
-	async createSlider() {
+	createSlider() {
 		try{
 			let parentStyles = this.#sliderContainer;
 			console.log(parentStyles);
@@ -164,13 +164,10 @@ class Slider {
 		}
 	}
 
-	async createWrapper(){
-		let sliderWrapper = await new SliderWrapper(this.opts,this.sliderElements).then((res) => {
-			console.log(res);
-			this.#sliderContainer.innerHTML = '';
-			this.#sliderContainer.insertAdjacentElement('afterbegin',sliderWrapper.wrapper);
-		});
-
+	createWrapper(){
+		let sliderWrapper = new SliderWrapper(this.opts,this.sliderElements);
+		this.#sliderContainer.innerHTML = '';
+		this.#sliderContainer.insertAdjacentElement('afterbegin',sliderWrapper.wrapper);
 	}
 
 	createSliderElements(){
@@ -226,36 +223,27 @@ class SliderWrapper{
 	#opts;
 
 	constructor(options, allSliderElements){
-		return (async () => {
-			this.#opts = options;
-			this.allSliderElements = allSliderElements;
-			this.wrapper = await this.createWrapper();
-			this.wrapper = await this.wrap(this.allSliderElements,this.wrapper);
-			await this.init();
-			console.log("test",this.wrapper);
-		})();
+		this.#opts = options;
+		this.allSliderElements = allSliderElements;
+		this.wrapper = this.createWrapper();
+		this.wrapper = this.wrap(this.allSliderElements,this.wrapper);
+		this.init();
+		console.log("test",this.wrapper);
 	}
 
-	async init(){
-		return new Promise((resolve) => {
-			this.setWrapperHeight(this.wrapper);
-			resolve();
-		})
+	init(){
+		this.setWrapperHeight(this.wrapper);
 	}
 
-	async wrap (el, wrapper) {
-		return new Promise((resolve) => {
+	wrap (el, wrapper) {
 			el.forEach(el => wrapper.appendChild(el));
-			resolve(wrapper);
-		});
+			return wrapper;
 	}
 
-	async createWrapper(){
-		return new Promise((resolve,reject) => {	
-			let wrapper = document.createElement('div');
-			wrapper.classList.add(this.#opts.sliderWrapperClass);
-			resolve(wrapper);
-		})
+	createWrapper(){
+		let wrapper = document.createElement('div');
+		wrapper.classList.add(this.#opts.sliderWrapperClass);
+		return wrapper;
 	}
 
 	getWrapperMaxHeight(){
