@@ -167,15 +167,19 @@ class Slider {
 		el.style.transitionProperty 	= this.getCssTransitionProp();
 	}
 
-	setContainerStylesGrid(el) {
+	getGridColumnString() {
 		let gridTemplateColumnsString = '';
-		SliderHelpers.setElementStyle(el,'display','grid');
-		SliderHelpers.setElementStyle(el,'justifyContent','center');
 		for (let i=0; i<this.opts.slidesPerRow; i++){
 			gridTemplateColumnsString += `1fr `;
 		}
+		return `${gridTemplateColumnsString.slice(0,-1)}`;
+	}
+
+	setContainerStylesGrid(el) {
+		SliderHelpers.setElementStyle(el,'display','grid');
+		SliderHelpers.setElementStyle(el,'justifyContent','center');
+		SliderHelpers.setElementStyle(el,'gridTemplateColumns',this.getGridColumnString());
 		this.opts.margin && SliderHelpers.setElementStyle(el,'gridColumnGap',`${this.opts.margin}px`);
-		SliderHelpers.setElementStyle(el,'gridTemplateColumns',`${gridTemplateColumnsString.slice(0,-1)}`);
 	}
 
 	createSlider() {
