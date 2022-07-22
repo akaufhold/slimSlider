@@ -15,8 +15,23 @@ class SliderHelpers {
 		return new Promise((res) => {setInterval(res, sec * 1000)})
 	}
 
-	static setElementStyle(el, styleProp, value) {
+	static setElStyle(el, styleProp, value) {
 		el.style[styleProp] = value;
+	}
+
+	static setElClass(el,cssClass) {
+		el.classList.add(cssClass);
+	}
+
+	static wrapAround(el, wrapper) {
+		el.forEach(el => wrapper.appendChild(el));
+		return wrapper;
+	}
+
+	static createWrapperElement(cssClass) {
+		let wrapper = document.createElement('div');
+		SliderHelpers.setElClass(wrapper,cssClass);
+		return wrapper;
 	}
 
 	static waitForElement(querySelector, timeout) {
@@ -49,8 +64,9 @@ class Slider {
 	sliderElements = [];
 	imgsLoaded = false;
 	
-	imgCurIndex = 0;
-	lastInd;
+	curIndex = [0];
+	lastIndex;
+	othIndex;
 	imgCount = 0;
 	curElementClass = 'cur-image';
 	prevElementClass = 'prev-image';
@@ -90,7 +106,7 @@ class Slider {
 		this.opts 		= this.options;
 		this.images 	= images;
 		this.imgCount = images.length;
-		this.lastInd 	= this.imgCount-1;
+		this.lastIndex 	= [this.imgCount-1];
 		this.opts.loop && (this.interval = '');
 		this.init();
 	}
@@ -113,14 +129,6 @@ class Slider {
 	clearLoop() {
 		clearInterval(this.interval);
 	}*/
-
-	addToClassList(indexArr,cssClass) {
-		indexArr.forEach((el) => this.sliderElements[el].classList.add(cssClass));
-	}
-
-	deleteClasses() {
-		this.sliderElements.forEach((el) => el.classList.remove(this.curElementClass,this.prevElementClass));
-	}
 
 	/* LAZYLOADING IMAGES */
 
@@ -186,6 +194,33 @@ class Slider {
 		});
 	}
 
+	/* SETS AND CHECK INDEXES FOR CURRENT, LAST AND OTHER ELEMENTS */
+
+	setSlideIndexes(start = false) {
+		this.lastIndex = this.curIndex;
+		this.setCurrentIndexes(start);
+		this.setOtherIndexes(this.curIndex,this.lastIndex);
+	}
+
+	setCurrentIndexes(start = false) {
+		this.checkForLastSlide() ? 
+			this.curIndex = [0] : 
+			this.curIndex = this.curIndex.map((value) => value + 1);
+	}
+
+	setOtherIndexes(curIndex,lastIndex) {
+		this.othIndex = [ ...Array(this.imgCount).keys() ].filter(el => {
+			let checkLast = curIndex.includes(el);
+			let checkCurs = lastIndex.includes(el);
+			return (!checkLast && !checkCurs);
+		});
+		console.log(this.othIndex);
+	}
+
+	checkForLastSlide(){
+		return this.curIndex.includes(this.imgCount-1);
+	}
+
 	/* TRANSITION AND STYLES */
 
 	async slideTransition() {
@@ -197,11 +232,10 @@ class Slider {
 			new Error('Slider not showing next image');
 		}
 		finally{
-			let lastSlide = (this.imgCurIndex+1) === this.imgCount;
-			if (this.opts.loop || (!lastSlide)){
+			let lastSlide = this.checkForLastSlide();
+			if (this.opts.loop || (!lastSlide)) {
 				this.interval = await SliderHelpers.loop(this.opts.delay);
-				this.lastInd = this.imgCurIndex;
-				lastSlide ? this.imgCurIndex=0 : this.imgCurIndex++;
+				this.setSlideIndexes();
 				await this.slideTransition();
 			}
 		}
@@ -213,9 +247,22 @@ class Slider {
 
 	setClassesAndStyles() {
 		this.deleteClasses();
-		this.addToClassList([this.imgCurIndex],this.curElementClass);
-		this.addToClassList([this.lastInd],this.prevElementClass);
+		this.addToClassList(this.curIndex,this.curElementClass);
+		this.addToClassList(this.lastIndex,this.prevElementClass);
 		this.setStylesForTransition();
+	}
+
+	addToClassList(indexArr,cssClass) {
+		indexArr.forEach((el) => this.sliderElements[el].classList.add(cssClass));
+	}
+
+	deleteClasses() {
+		this.sliderElements.forEach((el) => el.classList.remove(this.curElementClass,this.prevElementClass));
+	}
+
+	setContainerCss(el) {
+		this.setContainerCssGrid(el);
+		el.style.transitionProperty 	= this.getCssTransitionProp();
 	}
 
 	getCssTransitionProp() {
@@ -227,16 +274,11 @@ class Slider {
 		}
 	}
 
-	setContainerCss(el) {
-		this.setContainerCssGrid(el);
-		el.style.transitionProperty 	= this.getCssTransitionProp();
-	}
-
 	setContainerCssGrid(el) {
-		SliderHelpers.setElementStyle(el,'display','grid');
-		SliderHelpers.setElementStyle(el,'justifyContent','center');
-		SliderHelpers.setElementStyle(el,'gridTemplateColumns',this.getGridColumnString());
-		this.opts.margin && SliderHelpers.setElementStyle(el,'gridColumnGap',`${this.opts.margin}px`);
+		SliderHelpers.setElStyle(el,'display','grid');
+		SliderHelpers.setElStyle(el,'justifyContent','center');
+		SliderHelpers.setElStyle(el,'gridTemplateColumns',this.getGridColumnString());
+		this.opts.margin && SliderHelpers.setElStyle(el,'gridColumnGap',`${this.opts.margin}px`);
 	}
 
 	getGridColumnString() {
@@ -250,24 +292,27 @@ class Slider {
 	setStylesForTransition() {
 		switch (this.opts.transition) {
 			case 'fade':
-				this.setSlideStyles('*','opacity','0');
-				this.setSlideStyles([this.imgCurIndex],'opacity','1');
-				this.setSlideStyles([this.lastInd],'opacity','0');
+				this.setStylesForFadeTransition();
 				break;
 			case 'fade':
-				this.setSlideStyles([this.imgCurIndex],'opacity','1');
-				this.setSlideStyles([this.lastInd],'opacity','0');
+				this.setStylesForFadeTransition();
 				break;
 			default:
-				this.setSlideStyles([this.imgCurIndex],'opacity','1');
-				this.setSlideStyles([this.lastInd],'opacity','0');
+				this.setStylesForFadeTransition();
 				break;
 		}
 	}
 
+	setStylesForFadeTransition() {
+		console.log(this.othIndex,this.curIndex,this.lastIndex);
+		this.setSlideStyles(this.othIndex,'opacity','0');
+		this.setSlideStyles(this.curIndex,'opacity','1');
+		this.setSlideStyles(this.lastIndex,'opacity','0');
+	}
+
 	setSlideStyles(indexArr, styleProp, styleVal) {
-		indexArr === '*' && this.sliderElements.forEach((el) => SliderHelpers.setElementStyle(el,styleProp,styleVal));
-		indexArr !== '*' && indexArr.forEach((el) => SliderHelpers.setElementStyle(this.sliderElements[el],styleProp,styleVal));
+		indexArr === '*' && this.sliderElements.forEach((el) => SliderHelpers.setElStyle(el,styleProp,styleVal));
+		indexArr !== '*' && indexArr.forEach((el) => SliderHelpers.setElStyle(this.sliderElements[el],styleProp,styleVal));
 	}
 }
 
@@ -286,22 +331,11 @@ class SliderWrapper {
 	}
 
 	init(){
-		this.wrapper = this.wrapAround(this.allSliderElements,this.createWrapperElement());
+		this.wrapper = SliderHelpers.wrapAround(this.allSliderElements,SliderHelpers.createWrapperElement(this.#opts.sliderWrapperClass));
 		this.container.innerHTML = '';
 		this.container.insertAdjacentElement('afterbegin',this.wrapper);
 		this.wrapperDomElement = document.querySelector(`.${this.#opts.sliderWrapperClass}`);
 		this.setWrapperHeight();
-	}
-
-	wrapAround(el, wrapper) {
-			el.forEach(el => wrapper.appendChild(el));
-			return wrapper;
-	}
-
-	createWrapperElement() {
-		let wrapper = document.createElement('div');
-		wrapper.classList.add(this.#opts.sliderWrapperClass);
-		return wrapper;
 	}
 
 	async setWrapperHeight(el) {
@@ -328,7 +362,7 @@ class SliderWrapper {
 }
 
 class SliderElement {
-	#sliderContainer
+	#sliderContainer;
 	childnode;
 	opts;
 	index;
@@ -357,34 +391,32 @@ class SliderElement {
 
 	setElementStyles(el) {
 		let curColumn = (this.index+1)%this.opts.slidesPerRow;
-		SliderHelpers.setElementStyle(el,'gridRowStart',1);
+		SliderHelpers.setElStyle(el,'gridRowStart',1);
 		(curColumn === 0)
-			?SliderHelpers.setElementStyle(el,'gridColumnStart',this.opts.slidesPerRow)
-			:SliderHelpers.setElementStyle(el,'gridColumnStart',curColumn);
+			?SliderHelpers.setElStyle(el,'gridColumnStart',this.opts.slidesPerRow)
+			:SliderHelpers.setElStyle(el,'gridColumnStart',curColumn);
 	}
 
 	addElementClassesFromOptions(optionName,optionValue,cssClass) {
-		(this.opts[optionName] == optionValue) && this.setElementClasses(this.childnode,cssClass);
-	}
-
-	setElementClasses(el,cssClass) {
-		el.classList.add(cssClass);
+		(this.opts[optionName] == optionValue) && SliderHelpers.setElClass(this.childnode,cssClass);
 	}
 
 	addElementToContainer(el) {
-		el.classList.add();
+		SliderHelpers.setElClass(el,'slider-image')
 		this.#sliderContainer.insertAdjacentElement('beforeend', el);
 	}
 }
 
 const slider1 = new Slider(
 	{
-		type:'slider', 
+		delay: 5,
+		margin: 0,
 		sliderClass: 'slider',
 		slidesPerRow: 3,
 		slidesRowWrap: true,
-		margin: 0,
-		zoomOnHover: true
+		type:'slider', 
+		vignette: true,
+		zoomOnHover: false
 	},
 	'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-4.jpg','Public/Images/img-5.jpg','Public/Images/img-6.jpg'
 );
