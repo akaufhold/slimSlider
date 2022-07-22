@@ -106,7 +106,7 @@ class Slider {
 		this.opts 		= this.options;
 		this.images 	= images;
 		this.imgCount = images.length;
-		this.lastIndex 	= [this.imgCount-1];
+		this.setSlideIndexes(true);
 		this.opts.loop && (this.interval = '');
 		this.init();
 	}
@@ -181,7 +181,7 @@ class Slider {
 		}
 	}
 
-	createSliderWrapper(){
+	createSliderWrapper() {
 		let sliderWrapper = new SliderWrapper(this.opts,this.#sliderContainer,this.sliderElements);
 		return document.querySelector(`.${sliderWrapper.wrapper.className}`);
 	}
@@ -197,27 +197,39 @@ class Slider {
 	/* SETS AND CHECK INDEXES FOR CURRENT, LAST AND OTHER ELEMENTS */
 
 	setSlideIndexes(start = false) {
-		this.lastIndex = this.curIndex;
+		this.setLastIndexes(start);
 		this.setCurrentIndexes(start);
 		this.setOtherIndexes(this.curIndex,this.lastIndex);
 	}
 
+	getIndexesArray(prop) {
+		console.log(prop,[...Array(this[prop]).keys()]);
+		return [...Array(this[prop]).keys()];
+	}
+
+	setLastIndexes(start = false) {
+		this.lastIndex = start ? this.getIndexesArray('opts.slidesPerRow').length : this.curIndex;
+	}
+
 	setCurrentIndexes(start = false) {
-		this.checkForLastSlide() ? 
-			this.curIndex = [0] : 
+		let initialIndexes = this.getIndexesArray('opts.slidesPerRow');
+		if (start || this.checkForLastSlide()) {
+			this.curIndex = initialIndexes;
+		} else{
 			this.curIndex = this.curIndex.map((value) => value + 1);
+		}
 	}
 
 	setOtherIndexes(curIndex,lastIndex) {
-		this.othIndex = [ ...Array(this.imgCount).keys() ].filter(el => {
+		this.othIndex = this.getIndexesArray('imgCount').filter(el => {
 			let checkLast = curIndex.includes(el);
 			let checkCurs = lastIndex.includes(el);
 			return (!checkLast && !checkCurs);
 		});
-		console.log(this.othIndex);
+		//console.log(this.othIndex);
 	}
 
-	checkForLastSlide(){
+	checkForLastSlide() {
 		return this.curIndex.includes(this.imgCount-1);
 	}
 
@@ -304,7 +316,7 @@ class Slider {
 	}
 
 	setStylesForFadeTransition() {
-		console.log(this.othIndex,this.curIndex,this.lastIndex);
+		//console.log(this.othIndex,this.curIndex,this.lastIndex);
 		this.setSlideStyles(this.othIndex,'opacity','0');
 		this.setSlideStyles(this.curIndex,'opacity','1');
 		this.setSlideStyles(this.lastIndex,'opacity','0');
