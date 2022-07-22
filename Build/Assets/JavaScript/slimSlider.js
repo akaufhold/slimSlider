@@ -64,10 +64,13 @@ class Slider {
 	sliderElements = [];
 	imgsLoaded = false;
 	
+	imgCount = 0;
 	curIndex = [0];
 	lastIndex;
 	othIndex;
-	imgCount = 0;
+
+	incIndex = 1;
+
 	curElementClass = 'cur-image';
 	prevElementClass = 'prev-image';
 	sliderElementsHeights = '100vh';
@@ -106,8 +109,9 @@ class Slider {
 		this.opts 		= this.options;
 		this.images 	= images;
 		this.imgCount = images.length;
-		this.setSlideIndexes(true);
 		this.opts.loop && (this.interval = '');
+		this.setAllIndexes(true);
+		this.setIndexIncrement();
 		this.init();
 	}
 
@@ -196,27 +200,44 @@ class Slider {
 
 	/* SETS AND CHECK INDEXES FOR CURRENT, LAST AND OTHER ELEMENTS */
 
-	setSlideIndexes(start = false) {
+	setIndexIncrement() {
+		this.incIndex = this.getIndexesArray('slidesPerRow',true).length;
+		console.log(this.incIndex);
+	}
+
+	setAllIndexes(start = false) {
 		this.setLastIndexes(start);
 		this.setCurrentIndexes(start);
 		this.setOtherIndexes(this.curIndex,this.lastIndex);
 	}
 
-	getIndexesArray(prop) {
-		console.log(prop,[...Array(this[prop]).keys()]);
-		return [...Array(this[prop]).keys()];
+	getIndexesArray(prop, opts = false) {
+		let indexArr;
+		indexArr = [...Array(opts?this.opts[prop]:this[prop]).keys()];
+		console.log(indexArr);
+		/*if (opts) {
+			indexArr = [...Array(this.opts[prop]).keys()];
+		} else{
+			indexArr = [...Array(this[prop]).keys()];
+		}*/
+		return indexArr;
 	}
 
 	setLastIndexes(start = false) {
-		this.lastIndex = start ? this.getIndexesArray('opts.slidesPerRow').length : this.curIndex;
+		if (start){
+			let lastSliceIndex =  this.incIndex * -1;
+			this.lastIndex = this.getIndexesArray('imgCount').splice(lastSliceIndex);
+		} else {
+			this.lastIndex = this.curIndex;
+		}
 	}
 
 	setCurrentIndexes(start = false) {
-		let initialIndexes = this.getIndexesArray('opts.slidesPerRow');
+		let initialIndexes = this.getIndexesArray('slidesPerRow',true);
 		if (start || this.checkForLastSlide()) {
 			this.curIndex = initialIndexes;
 		} else{
-			this.curIndex = this.curIndex.map((value) => value + 1);
+			this.curIndex = this.curIndex.map((value) => value + this.incIndex);
 		}
 	}
 
@@ -247,7 +268,7 @@ class Slider {
 			let lastSlide = this.checkForLastSlide();
 			if (this.opts.loop || (!lastSlide)) {
 				this.interval = await SliderHelpers.loop(this.opts.delay);
-				this.setSlideIndexes();
+				this.setAllIndexes();
 				await this.slideTransition();
 			}
 		}
