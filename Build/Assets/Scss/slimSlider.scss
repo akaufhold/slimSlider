@@ -17,41 +17,7 @@ body {
   max-height: 100vh;
   overflow: hidden;
 
-  img {
-    max-width: 100%;
-    object-fit: cover;
-    overflow: hidden;
-    display: block;
-    transition-duration: .3s;
-    transform-style: preserve-3d;
-    will-change: auto;
-
-    &.parallel {
-      width: 40rem;
-      margin: 2rem;
-      border: 3rem solid white;
-      box-shadow: 0 2rem 5rem 1rem rgb(0 0 0 / 10%);
-    }
-
-    &.cur-image {
-      opacity: 1;
-      z-index: 10;
-      transition-duration: .3s;
-    }
-
-    &.prev-slide {
-      opacity: 1;
-      z-index: 5;
-    }
-
-    &.zoom {
-      &:hover {
-        transform: scale(1.1);
-      }
-    }
-  }
-
-  .slider-wrapper {
+  div.slider-wrapper {
     div.arrow {
       width: 6vmin;
       height: 6vmin;
@@ -85,6 +51,40 @@ body {
         border-color: #fafafa;
         transform-origin: 100% 0;
         transition: .2s ease;
+      }
+    }
+  }
+
+  img {
+    max-width: 100%;
+    object-fit: cover;
+    overflow: hidden;
+    display: block;
+    transition-duration: .3s;
+    transform-style: preserve-3d;
+    will-change: auto;
+
+    &.parallel {
+      width: 40rem;
+      margin: 2rem;
+      border: 3rem solid white;
+      box-shadow: 0 2rem 5rem 1rem rgb(0 0 0 / 10%);
+    }
+
+    &.cur-image {
+      opacity: 1;
+      z-index: 10;
+      transition-duration: .3s;
+    }
+
+    &.prev-slide {
+      opacity: 1;
+      z-index: 5;
+    }
+
+    &.zoom {
+      &:hover {
+        transform: scale(1.1);
       }
     }
   }

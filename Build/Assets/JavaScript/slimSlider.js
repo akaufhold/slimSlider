@@ -58,18 +58,19 @@ class Slider {
 
 	opts;
 	options = {
-		type: 'slider', /* slider or gallery */
-		sliderClass:"slider",
-		sliderWrapperClass: "slider-wrapper",
-		loop: true, 
 		autoplay: true,
 		delay: 6,
-		transition: 'fade',
-		transitionTiming: 'linear',
+		loop: true, 
+		margin: 0,
 		slidesPerRow: 1,
 		slidesPerColumn: 1,
 		slidesRowWrap: false,
-		margin: 0,
+		sliderClass:"slider",
+		sliderWrapperClass: "slider-wrapper",
+		transition: 'fade',
+		transitionTiming: 'linear',
+		type: 'slider', /* slider or gallery */
+		vignette: false,
 		zoomOnHover: true
 	}
 
@@ -104,60 +105,88 @@ class Slider {
 			throw new Error('Slider initialising failed');
 		}
 		finally{
-			this.opts.type=='slider' && this.createSlider();
+			this.opts.type == 'slider' && this.createSlider();
 			await this.slideTransition();
 		}
 	}
-
+	/* LATER USE
 	clearLoop() {
 		clearInterval(this.interval);
+	}*/
+
+	addToClassList(indexArr,cssClass) {
+		indexArr.forEach((el) => this.sliderElements[el].classList.add(cssClass));
 	}
 
-	setCurSlidesClasses(indexArr) {
-		indexArr.forEach((el) => this.sliderElements[el].classList.add(this.curElementClass));
-	}
-
-	setPrevSlidesClasses(indexArr) {
-		indexArr.forEach((el) => this.sliderElements[el].classList.add(this.prevElementClass));
-	}
-
-	deleteSliderClasses() {
+	deleteClasses() {
 		this.sliderElements.forEach((el) => el.classList.remove(this.curElementClass,this.prevElementClass));
 	}
 
-	//filterLastElements
+	/* LAZYLOADING IMAGES */
 
-	setSliderStyles() {
-		switch (this.opts.transition) {
-			case 'fade':
-				this.setSlideStyles([this.imgCurIndex],'opacity','1');
-				this.setSlideStyles([this.lastInd],'opacity','0');
-				break;
-			case 'fade':
-				this.setSlideStyles([this.imgCurIndex],'opacity','1');
-				this.setSlideStyles([this.lastInd],'opacity','0');
-				break;
-			default:
-				this.setSlideStyles([this.imgCurIndex],'opacity','1');
-				this.setSlideStyles([this.lastInd],'opacity','0');
-				break;
+	async #loadAllImages() {
+		try{
+			if (!this.imgsLoaded){
+				return await Promise.all(this.images.map(async image => this.#loadSingleImage(image)));
+			}		
+		}catch(error){
+			new Error(`Image loading failed `); 
+		}
+	};
+
+	async #loadSingleImage(path) {
+		try {
+			return await this.#createImage(path)
+		}
+		catch(err){
+			console.error(err)
+		}
+	};
+
+	async #createImage(path) {
+		return new Promise(function(res,rej){
+			let image = document.createElement('img');
+			image.src = path;
+			image.addEventListener('load', () => res(image), false);
+			image.addEventListener('error', () => rej(new Error(`Failed to load img > ${image.src}`)), false);
+		});
+	}
+
+	async #deleteImages() {
+		this.#sliderContainer.innerHTML = ''; 
+	}
+
+	/* CREATE SLIDER, WRAPPER AND ELEMENTS */
+
+	createSlider() {
+		try{
+			let parentStyles = this.#sliderContainer;
+			this.createSliderElements();
+			if (this.opts.slidesPerRow > 1){
+				this.#sliderWrapper = parentStyles = this.createSliderWrapper();
+			}
+			this.setContainerCss(parentStyles);
+		}
+		catch(err){
+			console.log(err);
+			new Error('Slider not created');
 		}
 	}
 
-	setSlideStyles(indexArr, styleProp, styleVal) {
-		indexArr.forEach((el) => SliderHelpers.setElementStyle(this.sliderElements[el],styleProp,styleVal));
+	createSliderWrapper(){
+		let sliderWrapper = new SliderWrapper(this.opts,this.#sliderContainer,this.sliderElements);
+		return document.querySelector(`.${sliderWrapper.wrapper.className}`);
 	}
 
-	setSliderClassesAndStyles() {
-		this.deleteSliderClasses();
-		this.setCurSlidesClasses([this.imgCurIndex]);
-		this.setPrevSlidesClasses([this.lastInd]);
-		this.setSliderStyles();
+	createSliderElements() {
+		this.images.length && this.#deleteImages();
+		this.imgsLoaded.forEach((el,index) => {
+			let sliderElement = new SliderElement(this.opts,this.#sliderContainer,el,index);
+			this.sliderElements.push(sliderElement.childnode);
+		});
 	}
 
-	showNextSlides() {
-		this.setSliderClassesAndStyles();
-	}
+	/* TRANSITION AND STYLES */
 
 	async slideTransition() {
 		try{
@@ -178,6 +207,17 @@ class Slider {
 		}
 	}
 
+	showNextSlides() {
+		this.setClassesAndStyles();
+	}
+
+	setClassesAndStyles() {
+		this.deleteClasses();
+		this.addToClassList([this.imgCurIndex],this.curElementClass);
+		this.addToClassList([this.lastInd],this.prevElementClass);
+		this.setStylesForTransition();
+	}
+
 	getCssTransitionProp() {
 		try{
 			return this.transitions[this.opts.transition];
@@ -187,9 +227,16 @@ class Slider {
 		}
 	}
 
-	setContainerStyles(el) {
-		this.setContainerStylesGrid(el);
+	setContainerCss(el) {
+		this.setContainerCssGrid(el);
 		el.style.transitionProperty 	= this.getCssTransitionProp();
+	}
+
+	setContainerCssGrid(el) {
+		SliderHelpers.setElementStyle(el,'display','grid');
+		SliderHelpers.setElementStyle(el,'justifyContent','center');
+		SliderHelpers.setElementStyle(el,'gridTemplateColumns',this.getGridColumnString());
+		this.opts.margin && SliderHelpers.setElementStyle(el,'gridColumnGap',`${this.opts.margin}px`);
 	}
 
 	getGridColumnString() {
@@ -200,72 +247,28 @@ class Slider {
 		return `${gridTemplateColumnsString.slice(0,-1)}`;
 	}
 
-	setContainerStylesGrid(el) {
-		SliderHelpers.setElementStyle(el,'display','grid');
-		SliderHelpers.setElementStyle(el,'justifyContent','center');
-		SliderHelpers.setElementStyle(el,'gridTemplateColumns',this.getGridColumnString());
-		this.opts.margin && SliderHelpers.setElementStyle(el,'gridColumnGap',`${this.opts.margin}px`);
-	}
-
-	createSlider() {
-		try{
-			let parentStyles = this.#sliderContainer;
-			this.createSliderElements();
-			if (this.opts.slidesPerRow > 1){
-				this.#sliderWrapper = parentStyles = this.createSliderWrapper();
-			}
-			this.setContainerStyles(parentStyles);
-		}
-		catch(err){
-			console.log(err);
-			new Error('Slider not created');
+	setStylesForTransition() {
+		switch (this.opts.transition) {
+			case 'fade':
+				this.setSlideStyles('*','opacity','0');
+				this.setSlideStyles([this.imgCurIndex],'opacity','1');
+				this.setSlideStyles([this.lastInd],'opacity','0');
+				break;
+			case 'fade':
+				this.setSlideStyles([this.imgCurIndex],'opacity','1');
+				this.setSlideStyles([this.lastInd],'opacity','0');
+				break;
+			default:
+				this.setSlideStyles([this.imgCurIndex],'opacity','1');
+				this.setSlideStyles([this.lastInd],'opacity','0');
+				break;
 		}
 	}
 
-	createSliderWrapper(){
-		let sliderWrapper = new SliderWrapper(this.opts,this.#sliderContainer,this.sliderElements);
-		return document.querySelector(`.${sliderWrapper.wrapper.className}`);
+	setSlideStyles(indexArr, styleProp, styleVal) {
+		indexArr === '*' && this.sliderElements.forEach((el) => SliderHelpers.setElementStyle(el,styleProp,styleVal));
+		indexArr !== '*' && indexArr.forEach((el) => SliderHelpers.setElementStyle(this.sliderElements[el],styleProp,styleVal));
 	}
-
-	createSliderElements() {
-		this.images.length && this.deleteImages();
-		this.imgsLoaded.forEach((el,index) => {
-			let sliderElement = new SliderElement(this.opts,this.#sliderContainer,el,index);
-			this.sliderElements.push(sliderElement.childnode);
-		});
-	}
-
-	async createImage(path) {
-		return new Promise(function(res,rej){
-			let image = document.createElement('img');
-			image.src = path;
-			image.addEventListener('load', () => res(image), false);
-			image.addEventListener('error', () => rej(new Error(`Failed to load img > ${image.src}`)), false);
-		});
-	}
-
-	async loadSingleImage(path) {
-		try {
-			return await this.createImage(path)
-		}
-		catch(err){
-			console.error(err)
-		}
-	};
-
-	async deleteImages() {
-		this.#sliderContainer.innerHTML = ''; 
-	}
-
-	async #loadAllImages() {
-		try{
-			if (!this.imgsLoaded){
-				return await Promise.all(this.images.map(async image => this.loadSingleImage(image)));
-			}		
-		}catch(error){
-			new Error(`Image loading failed `); 
-		}
-	};
 }
 
 class SliderWrapper {
@@ -301,6 +304,10 @@ class SliderWrapper {
 		return wrapper;
 	}
 
+	async setWrapperHeight(el) {
+		this.getWrapperMaxHeight().then((res) => this.wrapper.style.maxHeight = `${res}px`);
+	}
+
 	async getWrapperMaxHeight() {
 		try {
 			let sliderElementsHeights = await Promise.all([...this.allSliderElements].map(async (el,index) => {
@@ -311,18 +318,12 @@ class SliderWrapper {
 		}
 		catch(err) {
 			console.error(
-				`Waiting (Observer) for elements failed in 'SliderHelpers.waitForElement' \r\n 
+				`Error in 'SliderHelpers.waitForElement' \r\n 
 				Promise for following elements could not be resolved:\r\n`,
 				this.allSliderElements,
 				`Element heights could not be returned \r\n`
 			);
 		}
-	}
-
-	async setWrapperHeight(el) {
-		this.getWrapperMaxHeight().then((res) => {
-			this.wrapper.style.maxHeight = `${res}px`;
-		})
 	}
 }
 
@@ -349,24 +350,29 @@ class SliderElement {
 
 	init() {
 		this.setElementStyles(this.childnode);
-		this.setElementClasses(this.childnode);
-		this.addImageToContainer(this.childnode);
+		this.addElementClassesFromOptions('type','gallery','parallel');
+		this.addElementClassesFromOptions('zoomOnHover',true,'zoom');
+		this.addElementToContainer(this.childnode);
 	}
 
 	setElementStyles(el) {
 		let curColumn = (this.index+1)%this.opts.slidesPerRow;
 		SliderHelpers.setElementStyle(el,'gridRowStart',1);
-		(curColumn===0)
+		(curColumn === 0)
 			?SliderHelpers.setElementStyle(el,'gridColumnStart',this.opts.slidesPerRow)
 			:SliderHelpers.setElementStyle(el,'gridColumnStart',curColumn);
 	}
 
-	setElementClasses(el) {
-		this.opts.zoomOnHover && el.classList.add('zoom');
+	addElementClassesFromOptions(optionName,optionValue,cssClass) {
+		(this.opts[optionName] == optionValue) && this.setElementClasses(this.childnode,cssClass);
 	}
 
-	addImageToContainer(el) {
-		this.opts.type=='gallery' && el.classList.add('parallel');
+	setElementClasses(el,cssClass) {
+		el.classList.add(cssClass);
+	}
+
+	addElementToContainer(el) {
+		el.classList.add();
 		this.#sliderContainer.insertAdjacentElement('beforeend', el);
 	}
 }
@@ -375,10 +381,10 @@ const slider1 = new Slider(
 	{
 		type:'slider', 
 		sliderClass: 'slider',
-		slidesPerRow: 1,
+		slidesPerRow: 3,
 		slidesRowWrap: true,
 		margin: 0,
-		zoomOnHover: false
+		zoomOnHover: true
 	},
 	'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-4.jpg','Public/Images/img-5.jpg','Public/Images/img-6.jpg'
 );
