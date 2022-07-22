@@ -212,15 +212,7 @@ class Slider {
 	}
 
 	getIndexesArray(prop, opts = false) {
-		let indexArr;
-		indexArr = [...Array(opts?this.opts[prop]:this[prop]).keys()];
-		console.log(indexArr);
-		/*if (opts) {
-			indexArr = [...Array(this.opts[prop]).keys()];
-		} else{
-			indexArr = [...Array(this[prop]).keys()];
-		}*/
-		return indexArr;
+		return [...Array(opts?this.opts[prop]:this[prop]).keys()];
 	}
 
 	setLastIndexes(start = false) {
@@ -337,7 +329,6 @@ class Slider {
 	}
 
 	setStylesForFadeTransition() {
-		//console.log(this.othIndex,this.curIndex,this.lastIndex);
 		this.setSlideStyles(this.othIndex,'opacity','0');
 		this.setSlideStyles(this.curIndex,'opacity','1');
 		this.setSlideStyles(this.lastIndex,'opacity','0');
@@ -443,7 +434,7 @@ class SliderElement {
 const slider1 = new Slider(
 	{
 		delay: 5,
-		margin: 0,
+		margin: 10,
 		sliderClass: 'slider',
 		slidesPerRow: 3,
 		slidesRowWrap: true,
