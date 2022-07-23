@@ -479,26 +479,28 @@ class SliderElement {
 		this.childnode 				= element;
 		this.#index 					= index;
 		this.init();
+		console.log(this.#sliderContainer);
 	}
 
 	init() {
-		this.setElementIsWrapped() && this.setElementWrapper();
-		this.setElementStyles(this.childnode);
+		this.isElementWrapped() && this.setElementWrapper();
+		this.setElementStyles(this.#elementWrapper?this.#elementWrapper:this.childnode);
 		this.addElementClassesFromOptions('type','gallery','parallel');
 		this.addElementClassesFromOptions('zoomOnHover',true,'zoom');
-		this.addElementToContainer(this.childnode);
+		this.addElementToContainer(this.#elementWrapper?this.#elementWrapper:this.childnode);
 	}
 
-	setElementIsWrapped(){
+	isElementWrapped(){
 		return this.#elementIsWrapped = (this.#opts.vignette || this.#opts.zoomOnHover) && true;
 	}
 
 	setElementWrapper() {
 		console.log(this.childnode);
-		this.childnode = SliderHelpers.wrapAround(this.childnode,SliderHelpers.createWrapperElement(this.elementWrapperClass));
-		console.log(this.childnode);
+		this.#elementWrapper = SliderHelpers.wrapAround(this.childnode,SliderHelpers.createWrapperElement(this.elementWrapperClass));
+		console.log(this.#elementWrapper);
 		this.#sliderContainer.innerHTML = '';
-		this.#sliderContainer.insertAdjacentElement('afterbegin',this.childnode);
+		this.#sliderContainer.insertAdjacentElement('afterbegin',this.#elementWrapper);
+		console.log(this.#sliderContainer);
 	}
 
 	setElementStyles(el) {
@@ -516,7 +518,7 @@ class SliderElement {
 	}
 
 	addElementToContainer(el) {
-		SliderHelpers.setElClass(this.#elementIsWrapped?el.children[0]:el,'slider-image');
+		SliderHelpers.setElClass(el,'slider-image');
 		//this.#sliderContainer.insertAdjacentElement('beforeend', el);
 	}
 }
