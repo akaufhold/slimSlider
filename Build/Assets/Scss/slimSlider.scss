@@ -20,6 +20,10 @@ body {
   place-content: center;
 
   div.slider-wrapper {
+    z-index: 100;
+    overflow: hidden;
+    position: relative;
+
     div.arrow {
       width: 6vmin;
       height: 6vmin;
@@ -59,6 +63,7 @@ body {
 
   .slider-image-wrapper {
     overflow: hidden;
+    position: relative;
   }
 
   .cur-element {
@@ -75,6 +80,56 @@ body {
     transition-duration: .3s;
     transform-style: preserve-3d;
     will-change: auto;
+  }
+
+  .slider-controls {
+    .slider-control-dots {
+      position: absolute;
+      bottom: 5%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      z-index: 100;
+
+      .slider-control-dot {
+        border: none;
+        background-color: #b9b9b9;
+        opacity: .7;
+        height: 1rem;
+        width: 1rem;
+        border-radius: 50%;
+        margin-right: 1.75rem;
+        cursor: pointer;
+        transition: all .5s;
+
+        &:last-child {
+          margin: 0;
+        }
+
+        &-active {
+          background-color: #fff;
+
+          /* background-color: #888; */
+          opacity: 1;
+        }
+
+        /* Only necessary when overlying images */
+
+        /* box-shadow: 0 0.6rem 1.5rem rgba(0, 0, 0, 0.7); */
+      }
+    }
+
+    .slider-control-arrows {
+      .slider-control-arrow-left {
+        left: 6%;
+        transform: translate(-50%, -50%);
+      }
+
+      .slider-control-arrow-right {
+        right: 6%;
+        transform: translate(50%, -50%);
+      }
+    }
   }
 
   img {
