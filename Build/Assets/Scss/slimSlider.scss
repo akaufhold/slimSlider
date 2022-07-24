@@ -59,40 +59,42 @@ body {
 
   .slider-image-wrapper {
     overflow: hidden;
+  }
 
-    img {
-      max-width: 100%;
-      object-fit: cover;
-      overflow: hidden;
-      display: block;
-      transition-duration: .3s;
-      transform-style: preserve-3d;
-      will-change: auto;
+  .cur-element {
+    z-index: 10;
+    transition-duration: .3s;
+  }
 
-      &.parallel {
-        width: 40rem;
-        margin: 2rem;
-        border: 3rem solid white;
-        box-shadow: 0 2rem 5rem 1rem rgb(0 0 0 / 10%);
-      }
+  .prev-element {
+    z-index: 5;
+  }
 
-      &.cur-image {
-        opacity: 1;
-        z-index: 10;
-        transition-duration: .3s;
-      }
+  .slider-image-wrapper,
+  img {
+    transition-duration: .3s;
+    transform-style: preserve-3d;
+    will-change: auto;
+  }
 
-      &.prev-slide {
-        opacity: 1;
-        z-index: 5;
-      }
+  img {
+    max-width: 100%;
+    object-fit: cover;
+    overflow: hidden;
+    display: block;
 
-      &.zoom {
-        transition: .5s;
+    &.parallel {
+      width: 40rem;
+      margin: 2rem;
+      border: 3rem solid white;
+      box-shadow: 0 2rem 5rem 1rem rgb(0 0 0 / 10%);
+    }
 
-        &:hover {
-          transform: scale(1.1);
-        }
+    &.zoom {
+      transition: .5s;
+
+      &:hover {
+        transform: scale(1.1);
       }
     }
   }
