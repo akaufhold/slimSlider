@@ -66,6 +66,7 @@ class Slider {
 	imgsLoaded = false;
 	
 	/* CONTROLS */
+	#controlCssClasses = false;
 	#controlContainer = false;
 	#dotContainer = false;
 	#arrowContainer = false;
@@ -252,7 +253,6 @@ class Slider {
 	}
 
 	setAllIndexes(start = false, direction='right') {
-		//console.log(start,direction);
 		this.setLastIndexes(start);
 		this.setCurrentIndexes(start, direction);
 		this.setOtherIndexes(this.curIndex,this.lastIndex);
@@ -300,9 +300,30 @@ class Slider {
 
 	/* CREATE SLIDER CONTROL ELEMENTS */
 	
+	#setControlsCssClass(){
+		this.#controlCssClasses = {
+			container: {
+				name: 'slider-controls',
+				dotContainer: {
+					name: 'slider-control-dots',
+					dot: {
+						name: 'slider-control-dot'
+					}
+				},
+				arrowContainer: {
+					name: 'slider-control-arrows',
+					arrow: {
+						name: 'slider-control-arrow'
+					}
+				}
+			}
+		};	
+	}
+
 	#addControls() {
+		this.#setControlsCssClass();
 		this.#controlContainer = document.createElement('div');
-		this.#controlContainer.classList.add('slider-controls');
+		this.#controlContainer.classList.add(this.#controlCssClasses.container.name);
 		this.opts.controls.dots && this.#addControlDots();
 		this.opts.controls.arrows && this.#addControlArrows();
 
@@ -315,20 +336,17 @@ class Slider {
 
 	#addControlDots() {
 		this.#dotContainer = document.createElement('div');
-		this.#dotContainer.classList.add('slider-control-dots');
-		console.log(this.#dotContainer);
-		
+		this.#dotContainer.classList.add(this.#controlCssClasses.container.dotContainer.name);
 		this.sliderElements.forEach((_,index) => {
-			this.#dotContainer.insertAdjacentHTML('beforeEnd',`<div class="dot" data-slide="${index}"></div>`);
+			this.#dotContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.dotContainer.dot.name}" data-slide="${index}"></div>`);
 		});
 		this.#controlContainer.appendChild(this.#dotContainer);
-		console.log(this.#controlContainer);
 	}
 
 	#addControlArrows() {
 		this.#arrowContainer = {}
 		this.#arrowContainer.wrapper = document.createElement('div');
-		this.#arrowContainer.wrapper.classList.add('slider-control-arrows');
+		this.#arrowContainer.wrapper.classList.add(this.#controlCssClasses.container.arrowContainer.name);
 		this.#arrowContainer.sliderButtonLeft = this.#addControlArrowsSingle('left');
 		this.#arrowContainer.sliderButtonRight = this.#addControlArrowsSingle('right');
 		console.log(this.#arrowContainer.sliderButtonLeft);
@@ -337,7 +355,7 @@ class Slider {
 
 	#addControlArrowsSingle(direction){
 		let arrow = document.createElement('div');
-		arrow.classList.add(`slider-control-arrow-${direction}`);
+		arrow.classList.add(`${this.#controlCssClasses.container.arrowContainer.arrow.name}-${direction}`);
 		this.#arrowContainer.wrapper.appendChild(arrow);
 		return arrow;
 	}
@@ -367,14 +385,15 @@ class Slider {
 			console.log(e.target.dataset);
 			this.setActiveDot(Number(slide));
 			Slide(Number(slide));
-		})
+		}.bind(this), false);
 	}
 
 	setActiveDot(slide) {
-		this.#dotContainer.querySelectorAll('.dot').forEach((el,index) => {
+		console.log(slide);
+		this.#dotContainer.querySelectorAll(`.${this.#controlCssClasses.container.dotContainer.dot.name}`).forEach((el,index) => {
 			el.classList.remove('dot-active');
 		});
-		document.querySelector(`.dot[data-slide="${slide}"]`).classList.add('dot-active')
+		document.querySelector(`.${this.#controlCssClasses.container.dotContainer.dot.name}[data-slide="${slide}"]`).classList.add('dot-active')
 		//(index===slide) && el.classList.add('dots__dot-active');
 	}
 
