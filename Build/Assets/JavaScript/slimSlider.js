@@ -59,22 +59,26 @@ class SliderHelpers {
 }
 
 class Slider {
+	/* DOM ELEMENTS */
 	#sliderContainer;
 	#sliderWrapper = false;
 	sliderElements = [];
 	imgsLoaded = false;
 	
+
+	/* INDEXES, IMAGES LENGTH AND INCREMENT */
 	imgCount = 0;
 	curIndex = [0];
 	lastIndex;
 	othIndex;
-
 	incIndex = 1;
 
-	curElementClass = 'cur-image';
-	prevElementClass = 'prev-image';
+	/* OTHER DEFAULTS */
+	curElementClass = 'cur-element';
+	prevElementClass = 'prev-element';
 	sliderElementsHeights = '100vh';
 
+	/* OPTIONS */
 	opts;
 	options = {
 		autoplay: true,
@@ -86,6 +90,8 @@ class Slider {
 		slidesRowWrap: false,
 		sliderClass:"slider",
 		sliderWrapperClass: "slider-wrapper",
+		elementWrapperClass:'slider-image-wrapper',
+		elementClass:'slider-image',
 		transition: 'fade',
 		transitionTiming: 'linear',
 		type: 'slider', /* slider or gallery */
@@ -194,7 +200,7 @@ class Slider {
 		this.images.length && this.#deleteImages();
 		this.imgsLoaded.forEach((el,index) => {
 			let sliderElement = new SliderElement(this.opts,this.#sliderContainer,el,index);
-			this.sliderElements.push(sliderElement.childnode);
+			this.sliderElements.push(sliderElement.elementIsWrapped ? sliderElement.elementWrapper : sliderElement.elementnode);
 		});
 	}
 
@@ -237,7 +243,7 @@ class Slider {
 	}
 
 	setAllIndexes(start = false, direction='right') {
-		console.log(start,direction);
+		//console.log(start,direction);
 		this.setLastIndexes(start);
 		this.setCurrentIndexes(start, direction);
 		this.setOtherIndexes(this.curIndex,this.lastIndex);
@@ -290,7 +296,7 @@ class Slider {
 	}*/
 
 	createDots() {
-		SingleSlides.forEach((_,index) => {
+		this.sliderElements.forEach((_,index) => {
 			DotContainer.insertAdjacentHTML('beforeEnd',`<div class="dots__dot" data-slide="${index}"></div>`);
 		})
 	}
@@ -318,7 +324,7 @@ class Slider {
 		SliderButtonLeft.addEventListener('click', () => previousSlide());
 	}
 
-	#sliderEventKeys(){
+	#sliderEventKeys(){	
 		document.addEventListener('keydown',function(e){
 			e.key=='ArrowLeft' && previousSlide();
 			e.key=='ArrowRight' && nextSlide();
@@ -362,7 +368,7 @@ class Slider {
 	}
 
 	setClassesAndStyles() {
-		console.log('setClassesAndStyles');
+		//console.log('setClassesAndStyles');
 		this.deleteClasses();
 		this.addToClassList(this.curIndex,this.curElementClass);
 		this.addToClassList(this.lastIndex,this.prevElementClass);
@@ -404,33 +410,33 @@ class Slider {
 }
 
 class SliderWrapper {
-	container;
+	#container;
 	wrapper;
 	wrapperDomElement;
-	allSliderElements;
+	elementsToWrap;
 	#opts;
 
-	constructor(options, container, allSliderElements){
-		this.#opts 							= options;
-		this.container 					= container;
-		this.allSliderElements 	= allSliderElements;
+	constructor(options, container, elementsToWrap){
+		this.#opts 					= options;
+		this.#container 		= container;
+		this.elementsToWrap = elementsToWrap;
 		this.init();
 	}
 
 	init(){
-		this.wrapper = SliderHelpers.wrapAround(this.allSliderElements,SliderHelpers.createWrapperElement(this.#opts.sliderWrapperClass));
-		this.container.innerHTML = '';
-		this.container.insertAdjacentElement('afterbegin',this.wrapper);
+		this.wrapper = SliderHelpers.wrapAround(this.elementsToWrap,SliderHelpers.createWrapperElement(this.#opts.sliderWrapperClass));
+		this.#container.innerHTML = '';
+		this.#container.insertAdjacentElement('afterbegin',this.wrapper);
 		this.wrapperDomElement = document.querySelector(`.${this.#opts.sliderWrapperClass}`);
 		this.setWrapperHeight();
 	}
 
 	getImagesForWrapperMaxHeight(){
-		if ([...this.allSliderElements].filter(el => el.nodeName==='DIV').length){
-			return [...this.allSliderElements].filter(el => el.nodeName==='DIV').map(el => el.childNodes[0]);
+		if ([...this.elementsToWrap].filter(el => el.nodeName==='DIV').length){
+			return [...this.elementsToWrap].filter(el => el.nodeName==='DIV').map(el => el.childNodes[0]);
 		}
 		else
-			return [...this.allSliderElements];
+			return [...this.elementsToWrap];
 	}
 
 	async setWrapperHeight(el) {
@@ -459,10 +465,9 @@ class SliderWrapper {
 
 class SliderElement {
 	#sliderContainer;
-	#elementWrapper = false;
-	#elementIsWrapped = false;
-	elementWrapperClass = 'slider-image-wrapper'
-	childnode;
+	elementWrapper = false;
+	elementIsWrapped = false;
+	elementnode;
 	#opts;
 	#index;
 
@@ -476,31 +481,31 @@ class SliderElement {
 			this.#opts = options;
 		}
 		this.#sliderContainer = sliderContainer;
-		this.childnode 				= element;
+		this.elementnode 			= element;
 		this.#index 					= index;
 		this.init();
-		console.log(this.#sliderContainer);
+		//console.log(this.#sliderContainer);
 	}
 
 	init() {
 		this.isElementWrapped() && this.setElementWrapper();
-		this.setElementStyles(this.#elementWrapper?this.#elementWrapper:this.childnode);
+		this.setElementStyles(this.elementWrapper?this.elementWrapper:this.elementnode);
 		this.addElementClassesFromOptions('type','gallery','parallel');
 		this.addElementClassesFromOptions('zoomOnHover',true,'zoom');
-		this.addElementToContainer(this.#elementWrapper?this.#elementWrapper:this.childnode);
+		SliderHelpers.setElClass(this.elementnode,this.#opts.elementClass);
 	}
 
 	isElementWrapped(){
-		return this.#elementIsWrapped = (this.#opts.vignette || this.#opts.zoomOnHover) && true;
+		return this.elementIsWrapped = (this.#opts.vignette || this.#opts.zoomOnHover) && true;
 	}
 
 	setElementWrapper() {
-		console.log(this.childnode);
-		this.#elementWrapper = SliderHelpers.wrapAround(this.childnode,SliderHelpers.createWrapperElement(this.elementWrapperClass));
-		console.log(this.#elementWrapper);
-		this.#sliderContainer.innerHTML = '';
-		this.#sliderContainer.insertAdjacentElement('afterbegin',this.#elementWrapper);
-		console.log(this.#sliderContainer);
+		this.#index===0 && (this.#sliderContainer.innerHTML = '');
+		this.elementWrapper = SliderHelpers.wrapAround(
+			this.elementnode,
+			SliderHelpers.createWrapperElement(this.#opts.elementWrapperClass)
+		);
+		this.#sliderContainer.insertAdjacentElement('beforeEnd',this.elementWrapper);
 	}
 
 	setElementStyles(el) {
@@ -514,12 +519,7 @@ class SliderElement {
 	}
 
 	addElementClassesFromOptions(optionName,optionValue,cssClass) {
-		(this.#opts[optionName] == optionValue) && SliderHelpers.setElClass(this.childnode,cssClass);
-	}
-
-	addElementToContainer(el) {
-		SliderHelpers.setElClass(el,'slider-image');
-		//this.#sliderContainer.insertAdjacentElement('beforeend', el);
+		(this.#opts[optionName] == optionValue) && SliderHelpers.setElClass(this.elementnode,cssClass);
 	}
 }
 
