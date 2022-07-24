@@ -65,6 +65,10 @@ class Slider {
 	sliderElements = [];
 	imgsLoaded = false;
 	
+	/* CONTROLS */
+	#controlContainer = false;
+	#dotContainer = false;
+	#arrowContainer = false;
 
 	/* INDEXES, IMAGES LENGTH AND INCREMENT */
 	imgCount = 0;
@@ -82,6 +86,11 @@ class Slider {
 	opts;
 	options = {
 		autoplay: true,
+		controls: {
+			arrows: true,
+			dots: true,
+			events: true
+		},
 		delay: 6,
 		loop: true, 
 		margin: 0,
@@ -132,6 +141,7 @@ class Slider {
 		}
 		finally{
 			this.opts.type == 'slider' && this.createSlider();
+			this.opts.controls!== false && this.#addControls();
 			await this.slideTransition('right');
 		}
 	}
@@ -235,7 +245,6 @@ class Slider {
 		return `${gridTemplateColumnsString.slice(0,-1)}`;
 	}
 
-
 	/* SETS AND CHECK INDEXES FOR CURRENT, LAST AND OTHER ELEMENTS */
 
 	setIndexIncrement() {
@@ -290,53 +299,83 @@ class Slider {
 	}
 
 	/* CREATE SLIDER CONTROL ELEMENTS */
+	
+	#addControls() {
+		this.#controlContainer = document.createElement('div');
+		this.#controlContainer.classList.add('slider-controls');
+		this.opts.controls.dots && this.#addControlDots();
+		this.opts.controls.arrows && this.#addControlArrows();
+
+		this.#sliderWrapper ?
+			this.#sliderWrapper.appendChild(this.#controlContainer):
+			this.#sliderContainer.appendChild(this.#controlContainer);
+
+		this.opts.controls.events && this.#addControlEvents();
+	}
+
+	#addControlDots() {
+		this.#dotContainer = document.createElement('div');
+		this.#dotContainer.classList.add('slider-control-dots');
+		console.log(this.#dotContainer);
 		
-	/*Slide (cur) {
-		SingleSlides.forEach((slide,index) => slide.style.transform = `translateX(${(index-cur)*100}%)`);
-	}*/
-
-	createDots() {
 		this.sliderElements.forEach((_,index) => {
-			DotContainer.insertAdjacentHTML('beforeEnd',`<div class="dots__dot" data-slide="${index}"></div>`);
-		})
-	}
-
-	setActiveDot(slide) {
-		DotContainer.querySelectorAll('.dots__dot').forEach((el,index) => {
-			el.classList.remove('dots__dot--active');
+			this.#dotContainer.insertAdjacentHTML('beforeEnd',`<div class="dot" data-slide="${index}"></div>`);
 		});
-		document.querySelector(`.dots__dot[data-slide="${slide}"]`).classList.add('dots__dot--active')
-		//(index===slide) && el.classList.add('dots__dot-active');
+		this.#controlContainer.appendChild(this.#dotContainer);
+		console.log(this.#controlContainer);
 	}
 
-	sliderControls() {
-		this.#sliderEvents();
+	#addControlArrows() {
+		this.#arrowContainer = {}
+		this.#arrowContainer.wrapper = document.createElement('div');
+		this.#arrowContainer.wrapper.classList.add('slider-control-arrows');
+		this.#arrowContainer.sliderButtonLeft = this.#addControlArrowsSingle('left');
+		this.#arrowContainer.sliderButtonRight = this.#addControlArrowsSingle('right');
+		console.log(this.#arrowContainer.sliderButtonLeft);
+		this.#controlContainer.appendChild(this.#arrowContainer.wrapper);
 	}
 
-	#sliderEvents() {
-		this.#sliderEventsArrow();
-		this.#sliderEventKeys();
-		this.#sliderEventsDots();
+	#addControlArrowsSingle(direction){
+		let arrow = document.createElement('div');
+		arrow.classList.add(`slider-control-arrow-${direction}`);
+		this.#arrowContainer.wrapper.appendChild(arrow);
+		return arrow;
 	}
 
-	#sliderEventsArrow() {
-		SliderButtonRight.addEventListener('click', () => nextSlide());
-		SliderButtonLeft.addEventListener('click', () => previousSlide());
+	#addControlEvents() {
+		console.log(this.opts.controls.arrows);
+		this.opts.controls.arrows && this.#controlEventsArrow();
+		this.opts.controls.dots && this.#controlEventsDots();
+		this.opts.controls.events && this.#controlEventKeys();
 	}
 
-	#sliderEventKeys(){	
+	#controlEventsArrow() {
+		this.#arrowContainer.sliderButtonLeft.addEventListener('click', () => showPrevSlides());
+		this.#arrowContainer.sliderButtonRight.addEventListener('click', () => showNextSlides());
+	}
+
+	#controlEventKeys(){	
 		document.addEventListener('keydown',function(e){
 			e.key=='ArrowLeft' && previousSlide();
 			e.key=='ArrowRight' && nextSlide();
 		})
 	}
 
-	#sliderEventsDots() {
-		DotContainer.addEventListener('click',function(e){
+	#controlEventsDots() {
+		this.#dotContainer.addEventListener('click',function(e){
 			const {slide} = e.target.dataset;
-			setActiveDot(Number(slide));
+			console.log(e.target.dataset);
+			this.setActiveDot(Number(slide));
 			Slide(Number(slide));
 		})
+	}
+
+	setActiveDot(slide) {
+		this.#dotContainer.querySelectorAll('.dot').forEach((el,index) => {
+			el.classList.remove('dot-active');
+		});
+		document.querySelector(`.dot[data-slide="${slide}"]`).classList.add('dot-active')
+		//(index===slide) && el.classList.add('dots__dot-active');
 	}
 
 	/* TRANSITION AND STYLES */
@@ -382,6 +421,11 @@ class Slider {
 	deleteClasses() {
 		this.sliderElements.forEach((el) => el.classList.remove(this.curElementClass,this.prevElementClass));
 	}
+
+	/*Slide (cur) {
+		SingleSlides.forEach((slide,index) => slide.style.transform = `translateX(${(index-cur)*100}%)`);
+	}*/
+
 
 	setTransitionStyles() {
 		switch (this.opts.transition) {
