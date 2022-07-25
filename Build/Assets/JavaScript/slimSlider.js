@@ -3,8 +3,14 @@
 require("../Scss/slimSlider.scss");
 
 class SliderHelpers {
+	interval;
+
 	constructor() {
 
+	}
+
+	static clearInterval(){
+		clearInterval(this.interval);
 	}
 
 	static wait (sec) {
@@ -12,7 +18,10 @@ class SliderHelpers {
 	}
 
 	static loop(sec) {
-		return new Promise((res) => {setInterval(res, sec * 1000)})
+		return new Promise((res) => {
+			clearInterval(this.interval);
+			this.interval = setInterval(res, sec * 1000);
+		})
 	}
 
 	static setElStyle(el, styleProp, value) {
@@ -271,6 +280,8 @@ class Slider {
 
 	setCurrentIndexes(start = false, target) {
 		let initialIndexes = this.getIndexesArray('slidesPerRow',true);
+		//console.log('initial', initialIndexes);
+		!start && this.sliderControls.setActiveDot(this.curIndex);
 		if (start || this.checkForCurIndex()) {
 			this.curIndex = initialIndexes;
 		} else{
@@ -283,7 +294,6 @@ class Slider {
 					return target + this.incIndex;
 			});
 		}
-		!start && this.sliderControls.setActiveDot(this.curIndex);
 	}
 
 	setOtherIndexes(curIndex,lastIndex) {
@@ -303,23 +313,47 @@ class Slider {
 	
 	#addControls() {
 		this.sliderControls = new SliderControls(this.opts,this.#sliderContainer,this.#sliderWrapper,this.sliderElements);
-		console.log(this.sliderControls);
+		this.opts.controls.events && this.#addControlEvents();
+	}
+
+	#addControlEvents() {
+		this.opts.controls.arrows && this.#controlEventsArrow();
+		this.opts.controls.dots && this.#controlEventsDots();
+		this.opts.controls.events && this.#controlEventKeys();
+	}
+
+	#controlEventsArrow() {
+		this.sliderControls.arrowContainer.sliderButtonLeft.addEventListener('click', () => this.showPrevSlides());
+		this.sliderControls.arrowContainer.sliderButtonRight.addEventListener('click', () => this.showNextSlides());
+	}
+
+	#controlEventKeys() {	
+		document.addEventListener('keydown',function(e){
+			e.key=='ArrowLeft' && this.showPrevSlides();
+			e.key=='ArrowRight' && this.showNextSlides();
+		})
+	}
+
+	#controlEventsDots() {
+		this.sliderControls.dotContainer.addEventListener('click',function(e){
+			const {slide} = e.target.dataset;
+			//console.log(e.target.dataset);
+			//this.setActiveDot(Number(slide));
+			this.showSlides(Number(slide));
+		}.bind(this), false);
 	}
 
 	/* TRANSITION AND STYLES */
 
-	showSlides(index){
-		clearInterval(this.interval);
+	showSlides(index) {
 		this.slideTransition(index);
 	}
 
 	showNextSlides() {
-		clearInterval(this.interval);
 		this.slideTransition('right');
 	}
 
 	showPrevSlides() {
-		clearInterval(this.interval);
 		this.slideTransition('left');
 	}
 
@@ -335,8 +369,8 @@ class Slider {
 		finally{
 			let lastSlide = this.checkForCurIndex();
 			if (this.opts.loop || (!lastSlide)) {
-				clearInterval(this.interval);
 				this.interval = await SliderHelpers.loop(this.opts.delay);
+				//console.log(this.interval);
 				await this.slideTransition();
 			}
 		}
@@ -556,8 +590,6 @@ class SliderControls {
 		this.#sliderWrapper ?
 			this.#sliderWrapper.appendChild(this.controlContainer):
 			this.#sliderContainer.appendChild(this.controlContainer);
-
-		this.#opts.controls.events && this.#addControlEvents();
 	}
 
 	#addControlDots() {
@@ -585,42 +617,16 @@ class SliderControls {
 		return arrow;
 	}
 
-	#addControlEvents() {
-		this.#opts.controls.arrows && this.#controlEventsArrow();
-		this.#opts.controls.dots && this.#controlEventsDots();
-		this.#opts.controls.events && this.#controlEventKeys();
-	}
-
-	#controlEventsArrow() {
-		this.arrowContainer.sliderButtonLeft.addEventListener('click', () => showPrevSlides());
-		this.arrowContainer.sliderButtonRight.addEventListener('click', () => showNextSlides());
-	}
-
-	#controlEventKeys(){	
-		document.addEventListener('keydown',function(e){
-			e.key=='ArrowLeft' && previousSlide();
-			e.key=='ArrowRight' && nextSlide();
-		})
-	}
-
-	#controlEventsDots() {
-		this.dotContainer.addEventListener('click',function(e){
-			const {slide} = e.target.dataset;
-			console.log(e.target.dataset);
-			//this.setActiveDot(Number(slide));
-			this.showSlides(Number(slide));
-		}.bind(this), false);
-	}
-
 	resetDots(){
-		console.log(this.#controlCssClasses.container.dotContainer.dot.name);
+		SliderHelpers.clearInterval();
+		//console.log(this.#controlCssClasses.container.dotContainer.dot.name);
 		this.dotContainer.querySelectorAll(`.${this.#controlCssClasses.container.dotContainer.dot.name}`).forEach((el,index) => {
 			el.classList.remove('dot-active');
 		});
 	}
 
 	setActiveDot(slide) {
-		console.log(slide);
+		//console.log(slide);
 		this.resetDots();
 		slide.forEach(el => {
 			document.querySelector(`.${this.#controlCssClasses.container.dotContainer.dot.name}[data-slide="${el}"]`).classList.add('dot-active')
@@ -641,3 +647,12 @@ const slider1 = new Slider(
 	},
 	'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-4.jpg','Public/Images/img-5.jpg','Public/Images/img-6.jpg'
 );
+
+// let index = 0;
+// var interval = setInterval(function(){
+// 	console.log('interval => index',index);
+// 	index++;
+// },1000)
+// setTimeout(function(){
+// 	clearInterval(interval);
+// },6000)
