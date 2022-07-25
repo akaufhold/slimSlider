@@ -18,6 +18,7 @@ body {
   overflow: hidden;
   place-items: center;
   place-content: center;
+  position: relative;
 
   div.slider-wrapper {
     z-index: 100;
@@ -92,7 +93,7 @@ body {
       z-index: 100;
 
       .slider-control-dot {
-        border: none;
+        border: 1px solid #fff;
         background-color: #b9b9b9;
         opacity: .7;
         height: 1rem;
@@ -107,6 +108,7 @@ body {
         }
 
         &.dot-active {
+          border: 1px solid #b9b9b9;
           background-color: #fff;
 
           /* background-color: #888; */
