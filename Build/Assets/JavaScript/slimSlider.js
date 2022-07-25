@@ -319,7 +319,7 @@ class Slider {
 
 	setCurrentIndexes(start = false, target) {
 		let initialIndexes = this.getIndexesArray('slidesPerRow',true);
-		if (start || this.checkForCurIndex()) {
+		if (start || this.checkForCurIndex(target)) {
 			this.curIndex = initialIndexes;
 		} else{
 			this.curIndex = this.curIndex.map((value,index) => {
@@ -352,8 +352,10 @@ class Slider {
 		//console.log(this.othIndex);
 	}
 
-	checkForCurIndex(direction='right') {
-		return this.curIndex.includes(direction==='right'?this.imgCount-1:0);
+	checkForCurIndex(target='right') {
+		target==='right' && (target=this.imgCount-1);
+		target==='left' && (target=0);
+		return this.curIndex.includes(target);
 	}
 
 	/* TRANSITION AND STYLES */
@@ -372,11 +374,10 @@ class Slider {
 
 	async slideTransition(start = true, target = 'right') {
 		try{
-			if (!this.checkIndexSelectedAlready(target)){
-				!start && this.setAllIndexes(false, target);
-				!start && this.sliderControls.setActiveDot(this.curIndex);
-				this.setClassesAndStyles();
-			}
+			let isSelected = this.checkIndexSelectedAlready(target);
+			!start && !isSelected && this.setAllIndexes(false, target);
+			!start && !isSelected && this.sliderControls.setActiveDot(this.curIndex);
+			!isSelected && this.setClassesAndStyles();
 		}
 		catch(err){
 			console.error(err);
@@ -609,7 +610,9 @@ class SliderControls {
 		this.#opts.controls.dots && this.#addControlDots();
 		this.#opts.controls.arrows && this.#addControlArrows();
 		this.#sliderContainer.appendChild(this.controlContainer);
-		this.#opts.slidesRowWrap ? this.setActiveDot([...Array(this.#opts.slidesPerRow).keys()]) : this.setActiveDot([0]);
+		this.#opts.slidesRowWrap ? 
+			this.setActiveDot([...Array(this.#opts.slidesPerRow).keys()]) : 
+			this.setActiveDot([0]);
 	}
 
 	#addControlDots() {
@@ -646,7 +649,6 @@ class SliderControls {
 	}
 
 	setActiveDot(slide) {
-		console.log(slide);
 		this.resetDots();
 		slide.forEach(el => {
 			document.querySelector(`.${this.#controlCssClasses.container.dotContainer.dot.name}[data-slide="${el}"]`).classList.add('dot-active')
@@ -657,9 +659,10 @@ class SliderControls {
 const slider1 = new Slider(
 	{
 		delay: 5,
+		loop: false,
 		margin: 0,
 		sliderClass: 'slider',
-		slidesPerRow: 2,
+		slidesPerRow: 1,
 		slidesRowWrap: true,
 		type:'slider', 
 		vignette: true,
