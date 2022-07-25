@@ -246,18 +246,22 @@ class Slider {
 	}
 
 	getGridColumnString() {
-		let gridTemplateColumnsString = '';
-		for (let i=0; i<this.opts.slidesPerRow; i++){
-			gridTemplateColumnsString += `1fr `;
+		if (this.opts.slidesRowWrap){
+			let gridTemplateColumnsString = '';
+			for (let i=0; i<this.opts.slidesPerRow; i++){
+				gridTemplateColumnsString += `1fr `;
+			}
+			return `${gridTemplateColumnsString.slice(0,-1)}`;
 		}
-		return `${gridTemplateColumnsString.slice(0,-1)}`;
+		else {
+			return 'repeat(auto-fit, minmax(300px, 1fr))';
+		}
 	}
 
 	/* CREATE SLIDER CONTROL ELEMENTS */
 	
 	#addControls() {
 		this.sliderControls = new SliderControls(this.opts,this.#sliderContainer,this.#sliderWrapper,this.sliderElements);
-		console.log(this.sliderControls);
 		this.opts.controls.events && this.#addControlEvents();
 	}
 
@@ -274,7 +278,7 @@ class Slider {
 
 	#controlEventKeys() {	
 		document.addEventListener('keydown',function(e){
-			console.log(e);
+			//console.log(e);
 			e.key=='ArrowLeft' && this.showPrevSlides();
 			e.key=='ArrowRight' && this.showNextSlides();
 		}.bind(this))
@@ -283,9 +287,7 @@ class Slider {
 	#controlEventsDots() {
 		this.sliderControls.dotContainer.addEventListener('click',function(e){
 			const {slide} = e.target.dataset;
-			//console.log(e.target.dataset);
-			//this.setActiveDot(Number(slide));
-			this.showSlides(Number(slide));
+			Number(slide) && this.showSlides(Number(slide));
 		}.bind(this), false);
 	}
 
@@ -317,24 +319,25 @@ class Slider {
 
 	setCurrentIndexes(start = false, target) {
 		let initialIndexes = this.getIndexesArray('slidesPerRow',true);
-		//console.log('initial', initialIndexes);
 		if (start || this.checkForCurIndex()) {
 			this.curIndex = initialIndexes;
-			//console.log('start', this.curIndex);
 		} else{
-			console.log(target, this.curIndex);
 			this.curIndex = this.curIndex.map((value,index) => {
 				if (target==='right')
 					return value + this.incIndex;
 				else if (target==='left')
 					return value - this.incIndex;
-				else
-					return this.getCorrectIndexForTarget(target) + index;
+				else 
+					return this.getCurrentIndexForTarget(target) + index;
 			});
 		}
 	}
 
-	getCorrectIndexForTarget(target) {
+	checkIndexSelectedAlready(target) {
+		return this.curIndex.includes(target);
+	}
+
+	getCurrentIndexForTarget(target) {
 		let arrImageCount = this.getIndexesArray('imgCount').length;
 		let newIndex = this.opts.slidesPerRow * Math.floor(target/this.opts.slidesPerRow);
 		return newIndex;
@@ -369,9 +372,11 @@ class Slider {
 
 	async slideTransition(start = true, target = 'right') {
 		try{
-			!start && this.setAllIndexes(false, target);
-			!start && this.sliderControls.setActiveDot(this.curIndex);
-			this.setClassesAndStyles();
+			if (!this.checkIndexSelectedAlready(target)){
+				!start && this.setAllIndexes(false, target);
+				!start && this.sliderControls.setActiveDot(this.curIndex);
+				this.setClassesAndStyles();
+			}
 		}
 		catch(err){
 			console.error(err);
@@ -387,9 +392,7 @@ class Slider {
 	}
 
 	setClassesAndStyles() {
-		//console.log('setClassesAndStyles');
 		this.deleteClasses();
-		//console.log(this.lastIndex,this.curIndex);
 		this.addToClassList(this.curIndex,this.curElementClass);
 		this.addToClassList(this.lastIndex,this.prevElementClass);
 		this.setTransitionStyles();
@@ -454,6 +457,7 @@ class SliderWrapper {
 		this.#container.insertAdjacentElement('afterbegin',this.wrapper);
 		this.wrapperDomElement = document.querySelector(`.${this.#opts.sliderWrapperClass}`);
 		this.setWrapperHeight();
+		!this.#opts.slidesRowWrap && this.setWrapperWidth();
 	}
 
 	getImagesForWrapperMaxHeight(){
@@ -468,12 +472,17 @@ class SliderWrapper {
 		this.getWrapperMaxHeight().then((res) => this.wrapper.style.maxHeight = `${res}px`);
 	}
 
+	setWrapperWidth(){
+		let wrapperWidth = `${(this.elementsToWrap.length/this.#opts.slidesPerRow)*100}%`;
+		this.wrapperDomElement.style.width = wrapperWidth;
+	}
+
 	async getWrapperMaxHeight() {
 		try {
 			let imagesTarget = this.getImagesForWrapperMaxHeight();
 			let sliderElementsHeights = await Promise.all(imagesTarget.map(async (el,index) => {
 				await SliderHelpers.waitForElement(`.${this.#opts.sliderWrapperClass}`,0);
-				console.log(parseInt(window.getComputedStyle(el).height));
+				//console.log(parseInt(window.getComputedStyle(el).height));
 				return Number(parseInt(window.getComputedStyle(el).height));
 			}));
 			return Math.min(...sliderElementsHeights);
@@ -599,11 +608,7 @@ class SliderControls {
 		this.controlContainer.classList.add(this.#controlCssClasses.container.name);
 		this.#opts.controls.dots && this.#addControlDots();
 		this.#opts.controls.arrows && this.#addControlArrows();
-
-		this.#sliderWrapper ?
-			this.#sliderWrapper.appendChild(this.controlContainer):
-			this.#sliderContainer.appendChild(this.controlContainer);
-
+		this.#sliderContainer.appendChild(this.controlContainer);
 		this.#opts.slidesRowWrap ? this.setActiveDot([...Array(this.#opts.slidesPerRow).keys()]) : this.setActiveDot([0]);
 	}
 
@@ -641,7 +646,7 @@ class SliderControls {
 	}
 
 	setActiveDot(slide) {
-		//console.log(slide);
+		console.log(slide);
 		this.resetDots();
 		slide.forEach(el => {
 			document.querySelector(`.${this.#controlCssClasses.container.dotContainer.dot.name}[data-slide="${el}"]`).classList.add('dot-active')
@@ -654,11 +659,11 @@ const slider1 = new Slider(
 		delay: 5,
 		margin: 0,
 		sliderClass: 'slider',
-		slidesPerRow: 3,
-		slidesRowWrap: false,
+		slidesPerRow: 2,
+		slidesRowWrap: true,
 		type:'slider', 
 		vignette: true,
-		zoomOnHover: true
+		zoomOnHover: false
 	},
 	'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-4.jpg','Public/Images/img-5.jpg','Public/Images/img-6.jpg'
 );
