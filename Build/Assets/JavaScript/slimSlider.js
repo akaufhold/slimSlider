@@ -153,10 +153,6 @@ class Slider {
 			await this.slideTransition('right');
 		}
 	}
-	/* LATER USE
-	clearLoop() {
-		clearInterval(this.interval);
-	}*/
 
 	/* LAZYLOADING IMAGES */
 
@@ -287,7 +283,7 @@ class Slider {
 	#controlEventsDots() {
 		this.sliderControls.dotContainer.addEventListener('click',function(e){
 			const {slide} = e.target.dataset;
-			Number(slide) && this.showSlides(Number(slide));
+			Number.isInteger(parseInt(slide)) && this.showSlides(Number(slide));
 		}.bind(this), false);
 	}
 
@@ -317,8 +313,12 @@ class Slider {
 		}
 	}
 
+	setInitialIndex() {
+		return this.getIndexesArray('slidesPerRow',true);
+	}
+
 	setCurrentIndexes(start = false, target) {
-		let initialIndexes = this.getIndexesArray('slidesPerRow',true);
+		let initialIndexes = this.setInitialIndex();
 		if (start || this.checkForCurIndex(target)) {
 			this.curIndex = initialIndexes;
 		} else{
@@ -349,7 +349,6 @@ class Slider {
 			let checkCurs = lastIndex.includes(el);
 			return (!checkLast && !checkCurs);
 		});
-		//console.log(this.othIndex);
 	}
 
 	checkForCurIndex(target='right') {
@@ -406,11 +405,6 @@ class Slider {
 	deleteClasses() {
 		this.sliderElements.forEach((el) => el.classList.remove(this.curElementClass,this.prevElementClass));
 	}
-
-	/*Slide (cur) {
-		SingleSlides.forEach((slide,index) => slide.style.transform = `translateX(${(index-cur)*100}%)`);
-	}*/
-
 
 	setTransitionStyles() {
 		switch (this.opts.transition) {
@@ -662,8 +656,8 @@ const slider1 = new Slider(
 		loop: false,
 		margin: 0,
 		sliderClass: 'slider',
-		slidesPerRow: 1,
-		slidesRowWrap: true,
+		slidesPerRow: 3,
+		slidesRowWrap: false,
 		type:'slider', 
 		vignette: true,
 		zoomOnHover: false
