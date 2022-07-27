@@ -24,6 +24,7 @@ body {
     z-index: 100;
     overflow: hidden;
     position: relative;
+    transition-duration: .5s;
 
     div.arrow {
       width: 6vmin;
@@ -81,6 +82,7 @@ body {
     transition-duration: .3s;
     transform-style: preserve-3d;
     will-change: auto;
+    z-index: 1;
   }
 
   .slider-controls {
