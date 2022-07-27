@@ -1,71 +1,11 @@
 'use strict';
 
-require("../Scss/slimSlider.scss");
+import '../Scss/slimSlider.scss';
 
-class SliderHelpers {
-	interval;
-
-	constructor() {
-
-	}
-
-	static clearInterval(){
-		clearInterval(this.interval);
-	}
-
-	static wait (sec) {
-		return new Promise((res) => {setTimeout(res, sec * 1000)});
-	}
-
-	static loop(sec) {
-		return new Promise((res) => {
-			clearInterval(this.interval);
-			this.interval = setInterval(res, sec * 1000);
-		})
-	}
-
-	static setElStyle(el, styleProp, value) {
-		el.style[styleProp] = value;
-	}
-
-	static setElClass(el,cssClass) {
-		el.classList.add(cssClass);
-	}
-
-	static wrapAround(el, wrapper) {
-		(el.length > 1) ? el.forEach(el => wrapper.appendChild(el)) : wrapper.appendChild(el);
-		return wrapper;
-	}
-
-	static createWrapperElement(cssClass) {
-		let wrapper = document.createElement('div');
-		SliderHelpers.setElClass(wrapper,cssClass);
-		return wrapper;
-	}
-
-	static waitForElement(querySelector, timeout) {
-		return new Promise((resolve, reject)=> {
-			var timer = false;
-
-			if(document.querySelectorAll(querySelector).length) return resolve();
-			const observer = new MutationObserver(() => {
-				if(document.querySelectorAll(querySelector).length) {
-					observer.disconnect();
-					if(timer !== false) clearTimeout(timer);
-					return resolve();
-				}
-			});
-			observer.observe(document.body, {
-				childList: true, 
-				subtree: true
-			});
-			if(timeout) timer = setTimeout(() => {
-				observer.disconnect();
-				reject();
-			}, timeout);
-		});
-	}
-}
+import SliderHelpers from './slimSlider.helpers';
+import SliderControls from './slimSlider.controls';
+import SliderWrapper from './slimSlider.wrapper';
+import SliderElement from './slimSlider.element';
 
 class Slider {
 	/* DOM ELEMENTS */
@@ -109,6 +49,7 @@ class Slider {
 		sliderWrapperClass: "slider-wrapper",
 		elementWrapperClass:'slider-image-wrapper',
 		elementClass:'slider-image',
+		elementType:'div',
 		transition: 'fade',
 		transitionTiming: 'linear',
 		type: 'slider', /* slider or gallery */
@@ -222,7 +163,15 @@ class Slider {
 
 	setContainerCss(el) {
 		this.setContainerCssGrid(el);
-		el.style.transitionProperty 	= this.getCssTransitionProp();
+		this.setCssTransitionProp(el);
+	}
+
+	setCssTransitionProp(el,addProp='') {
+		el.style.transitionProperty = `${this.getCssTransitionProp()}${addProp && ','+addProp}`;
+	}
+
+	setCssTransitionTiming(el,prop) {
+		el.style.transitionTiming = `${prop}`;
 	}
 
 	getCssTransitionProp() {
@@ -407,12 +356,20 @@ class Slider {
 	}
 
 	setTransitionStyles() {
+		let transitionTraget = this.#sliderWrapper?this.#sliderWrapper:this.#sliderContainer;
 		switch (this.opts.transition) {
 			case 'fade':
 				this.setTransitionStylesFade();
+				if (!this.opts.slidesRowWrap) {
+					this.setCssTransitionProp(transitionTraget,'transform');
+					this.setTransitionStylesTranslate();
+				}
 				break;
-			case 'fade':
-				this.setTransitionStylesTranslate();
+			case 'slide':
+				if (!this.opts.slidesRowWrap) {
+					this.setCssTransitionProp(transitionTraget,'transform');
+					this.setTransitionStylesTranslate();
+				} else this.setElTransitionStylesTranslate();
 				break;
 			default:
 				this.setTransitionStylesFade();
@@ -430,234 +387,36 @@ class Slider {
 		this.setTransitionStyle(this.curIndex,'opacity','1');
 		this.setTransitionStyle(this.lastIndex,'opacity','0');
 	}
-}
 
-class SliderWrapper {
-	#container;
-	wrapper;
-	wrapperDomElement;
-	elementsToWrap;
-	#opts;
-
-	constructor(options, container, elementsToWrap){
-		this.#opts 					= options;
-		this.#container 		= container;
-		this.elementsToWrap = elementsToWrap;
-		this.init();
+	setTransitionStylesTranslate() {
+		this.#sliderWrapper.style.transform = `translate3d(-${(100/this.sliderElements.length)*this.curIndex[0]}%,0,0)`;
 	}
 
-	init(){
-		this.wrapper = SliderHelpers.wrapAround(this.elementsToWrap,SliderHelpers.createWrapperElement(this.#opts.sliderWrapperClass));
-		this.#container.innerHTML = '';
-		this.#container.insertAdjacentElement('afterbegin',this.wrapper);
-		this.wrapperDomElement = document.querySelector(`.${this.#opts.sliderWrapperClass}`);
-		this.setWrapperHeight();
-		!this.#opts.slidesRowWrap && this.setWrapperWidth();
-	}
-
-	getImagesForWrapperMaxHeight(){
-		if ([...this.elementsToWrap].filter(el => el.nodeName==='DIV').length){
-			return [...this.elementsToWrap].filter(el => el.nodeName==='DIV').map(el => el.childNodes[0]);
-		}
-		else
-			return [...this.elementsToWrap];
-	}
-
-	async setWrapperHeight(el) {
-		this.getWrapperMaxHeight().then((res) => this.wrapper.style.maxHeight = `${res}px`);
-	}
-
-	setWrapperWidth(){
-		let wrapperWidth = `${(this.elementsToWrap.length/this.#opts.slidesPerRow)*100}%`;
-		this.wrapperDomElement.style.width = wrapperWidth;
-	}
-
-	async getWrapperMaxHeight() {
-		try {
-			let imagesTarget = this.getImagesForWrapperMaxHeight();
-			let sliderElementsHeights = await Promise.all(imagesTarget.map(async (el,index) => {
-				await SliderHelpers.waitForElement(`.${this.#opts.sliderWrapperClass}`,0);
-				//console.log(parseInt(window.getComputedStyle(el).height));
-				return Number(parseInt(window.getComputedStyle(el).height));
-			}));
-			return Math.min(...sliderElementsHeights);
-		}
-		catch(err) {
-			console.error(
-				`Error in 'SliderHelpers.waitForElement' \r\n 
-				Promise for following elements could not be resolved:\r\n`,
-				this.allSliderElements,
-				`Element heights could not be returned \r\n`
-			);
-		}
-	}
-}
-
-class SliderElement {
-	#sliderContainer;
-	elementWrapper = false;
-	elementIsWrapped = false;
-	elementnode;
-	#opts;
-	#index;
-
-	constructor(
-		options,
-		sliderContainer,
-		element,
-		index
-	){
-		for (const option of Object.entries(options)) {
-			this.#opts = options;
-		}
-		this.#sliderContainer = sliderContainer;
-		this.elementnode 			= element;
-		this.#index 					= index;
-		this.init();
-		//console.log(this.#sliderContainer);
-	}
-
-	init() {
-		this.isElementWrapped() && this.setElementWrapper();
-		this.setElementStyles(this.elementWrapper?this.elementWrapper:this.elementnode);
-		this.addElementClassesFromOptions('type','gallery','parallel');
-		this.addElementClassesFromOptions('zoomOnHover',true,'zoom');
-		SliderHelpers.setElClass(this.elementnode,this.#opts.elementClass);
-	}
-
-	isElementWrapped(){
-		return this.elementIsWrapped = (this.#opts.vignette || this.#opts.zoomOnHover) && true;
-	}
-
-	setElementWrapper() {
-		this.#index===0 && (this.#sliderContainer.innerHTML = '');
-		this.elementWrapper = SliderHelpers.wrapAround(
-			this.elementnode,
-			SliderHelpers.createWrapperElement(this.#opts.elementWrapperClass)
-		);
-		this.#sliderContainer.insertAdjacentElement('beforeEnd',this.elementWrapper);
-	}
-
-	setElementStyles(el) {
-		let curColumn = this.#opts.slidesRowWrap ? 
-										(this.#index+1)%this.#opts.slidesPerRow : 
-										(this.#index+1);
-		SliderHelpers.setElStyle(el,'gridRowStart',1);
-		(curColumn === 0)
-			?SliderHelpers.setElStyle(el,'gridColumnStart',this.#opts.slidesPerRow)
-			:SliderHelpers.setElStyle(el,'gridColumnStart',curColumn);
-	}
-
-	addElementClassesFromOptions(optionName,optionValue,cssClass) {
-		(this.#opts[optionName] == optionValue) && SliderHelpers.setElClass(this.elementnode,cssClass);
-	}
-}
-
-class SliderControls {
-	#sliderContainer;
-	#sliderWrapper;
-	#sliderElements;
-
-	controlContainer = false;
-	dotContainer = false;
-	arrowContainer = false;
-
-	#controlCssClasses = {
-		container: {
-			name: 'slider-controls',
-			dotContainer: {
-				name: 'slider-control-dots',
-				dot: {
-					name: 'slider-control-dot'
-				}
-			},
-			arrowContainer: {
-				name: 'slider-control-arrows',
-				arrow: {
-					name: 'slider-control-arrow'
-				}
-			}
-		}
-	};	
-
-	#opts;
-
-	constructor(
-		options,
-		sliderContainer,
-		sliderWrapper,
-		sliderElements
-	){
-		for (const option of Object.entries(options)) {
-			this.#opts = options;
-		}
-		this.#sliderContainer = sliderContainer;
-		this.#sliderWrapper   = sliderWrapper;
-		this.#sliderElements 	= sliderElements;
-		this.init();
-		//console.log(this.#sliderContainer);
-	}
-
-	init() {
-		this.controlContainer = document.createElement('div');
-		this.controlContainer.classList.add(this.#controlCssClasses.container.name);
-		this.#opts.controls.dots && this.#addControlDots();
-		this.#opts.controls.arrows && this.#addControlArrows();
-		this.#sliderContainer.appendChild(this.controlContainer);
-		this.#opts.slidesRowWrap ? 
-			this.setActiveDot([...Array(this.#opts.slidesPerRow).keys()]) : 
-			this.setActiveDot([0]);
-	}
-
-	#addControlDots() {
-		this.dotContainer = document.createElement('div');
-		this.dotContainer.classList.add(this.#controlCssClasses.container.dotContainer.name);
-		this.#sliderElements.forEach((_,index) => {
-			this.dotContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.dotContainer.dot.name}" data-slide="${index}"></div>`);
+	setElTransitionStylesTranslate() {
+		this.sliderElements.forEach((el,ind) => {
+			this.setCssTransitionProp(el);
+			this.setCssTransitionTiming(el,this.opts.transitionTiming);
+			let translateX = SliderHelpers.isEven(ind)?'-100%':'100%';
+			el.style.transform = `translate3d(${translateX},0,0)`;
 		});
-		this.controlContainer.appendChild(this.dotContainer);
-	}
-
-	#addControlArrows() {
-		this.arrowContainer = {}
-		this.arrowContainer.wrapper = document.createElement('div');
-		this.arrowContainer.wrapper.classList.add(this.#controlCssClasses.container.arrowContainer.name);
-		this.arrowContainer.sliderButtonLeft = this.#addControlArrowsSingle('left');
-		this.arrowContainer.sliderButtonRight = this.#addControlArrowsSingle('right');
-		this.controlContainer.appendChild(this.arrowContainer.wrapper);
-	}
-
-	#addControlArrowsSingle(direction){
-		let arrow = document.createElement('div');
-		arrow.classList.add(`${this.#controlCssClasses.container.arrowContainer.arrow.name}-${direction}`);
-		this.arrowContainer.wrapper.appendChild(arrow);
-		return arrow;
-	}
-
-	resetDots(){
-		SliderHelpers.clearInterval();
-		//console.log(this.#controlCssClasses.container.dotContainer.dot.name);
-		this.dotContainer.querySelectorAll(`.${this.#controlCssClasses.container.dotContainer.dot.name}`).forEach((el,index) => {
-			el.classList.remove('dot-active');
+		let targetElements = this.sliderElements.filter((el,index) => this.curIndex.includes(index));
+		targetElements.forEach(el => {
+			el.style.transform = `translate3d(0,0,0)`;
 		});
-	}
-
-	setActiveDot(slide) {
-		this.resetDots();
-		slide.forEach(el => {
-			document.querySelector(`.${this.#controlCssClasses.container.dotContainer.dot.name}[data-slide="${el}"]`).classList.add('dot-active')
-		})
 	}
 }
 
 const slider1 = new Slider(
 	{
 		delay: 5,
-		loop: false,
+		elementType: 'div',
+		loop: true,
 		margin: 0,
 		sliderClass: 'slider',
-		slidesPerRow: 3,
-		slidesRowWrap: false,
+		slidesPerRow: 2,
+		slidesRowWrap: true,
+		transition: 'slide',
+		transitionTiming: 'ease-in-out',
 		type:'slider', 
 		vignette: true,
 		zoomOnHover: false
