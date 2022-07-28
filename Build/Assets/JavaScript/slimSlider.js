@@ -37,6 +37,7 @@ class Slider {
 		controls: {
 			arrows: true,
 			dots: true,
+			dotsCount: 'fitRows', /* fitRows or all/empty */
 			events: true
 		},
 		delay: 6,
@@ -50,7 +51,7 @@ class Slider {
 		elementWrapperClass:'slider-image-wrapper',
 		elementClass:'slider-image',
 		elementType:'div',
-		transition: 'fade',
+		transition: 'fade', /* fade, slide or rotate */
 		transitionTiming: 'linear',
 		type: 'slider', /* slider or gallery */
 		vignette: false,
@@ -248,11 +249,6 @@ class Slider {
 		this.setOtherIndexes(this.curIndex,this.lastIndex);
 	}
 
-	getIndexesArray(prop, opts = false) {
-		let arrayTo = opts?this.opts[prop]:this[prop];
-		return [...Array(arrayTo).keys()];
-	}
-
 	setLastIndexes(start = false) {
 		if (start){
 			let lastSliceIndex =  this.incIndex * -1;
@@ -262,12 +258,8 @@ class Slider {
 		}
 	}
 
-	setInitialIndex() {
-		return this.getIndexesArray('slidesPerRow',true);
-	}
-
 	setCurrentIndexes(start = false, target) {
-		let initialIndexes = this.setInitialIndex();
+		let initialIndexes = this.setInitialIndex(target);
 		if (start || this.checkForCurIndex(target)) {
 			this.curIndex = initialIndexes;
 		} else{
@@ -276,14 +268,28 @@ class Slider {
 					return value + this.incIndex;
 				else if (target==='left')
 					return value - this.incIndex;
-				else 
-					return this.getCurrentIndexForTarget(target) + index;
+				else {
+					let targetIndex = this.opts.controls.dotsCount==='fitRows'?
+						(target*this.opts.slidesPerRow)+ index:
+						this.getCurrentIndexForTarget(target) + index;
+					return targetIndex;
+				}
 			});
 		}
 	}
 
+	setInitialIndex(target) {
+		return this.getIndexesArray('slidesPerRow',target,true);
+	}
+
+	getIndexesArray(prop, opts = false, target='right') {
+		let arrayTo = opts?this.opts[prop]:this[prop];
+		let arrayInitial = target==='left'?[...Array(arrayTo).keys()]:[...Array(arrayTo).keys()];
+		return arrayInitial;
+	}
+
 	checkIndexSelectedAlready(target) {
-		return this.curIndex.includes(target);
+		return this.curIndex.includes(this.opts.controls.dotsCount==='fitRows'?target*this.opts.slidesPerRow:target);
 	}
 
 	getCurrentIndexForTarget(target) {
@@ -323,8 +329,10 @@ class Slider {
 	async slideTransition(start = true, target = 'right') {
 		try{
 			let isSelected = this.checkIndexSelectedAlready(target);
-			!start && !isSelected && this.setAllIndexes(false, target);
-			!start && !isSelected && this.sliderControls.setActiveDot(this.curIndex);
+			if (!start && !isSelected){
+				this.setAllIndexes(false, target);
+				this.sliderControls.setActiveDot(this.curIndex);
+			}
 			!isSelected && this.setClassesAndStyles();
 		}
 		catch(err){

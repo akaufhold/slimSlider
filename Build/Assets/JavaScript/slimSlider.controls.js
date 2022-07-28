@@ -51,17 +51,26 @@ export default class SliderControls {
 		this.#opts.controls.dots && this.#addControlDots();
 		this.#opts.controls.arrows && this.#addControlArrows();
 		this.#sliderContainer.appendChild(this.controlContainer);
-		this.setActiveDot([...Array(this.#opts.slidesPerRow).keys()]); 
+		this.setActiveDot(this.#opts.controls.dotsCount==='fitRows'?[0]:[...Array(this.#opts.slidesPerRow).keys()]); 
 			//this.setActiveDot([0]);
 	}
 
 	#addControlDots() {
+		let elementsArray = this.#sliderElements;
 		this.dotContainer = document.createElement('div');
 		this.dotContainer.classList.add(this.#controlCssClasses.container.dotContainer.name);
-		this.#sliderElements.forEach((_,index) => {
+		(this.#opts.controls.dotsCount == 'fitRows') && (elementsArray = this.#addControlDotsArray(this.#sliderElements.slice()));
+		elementsArray.forEach((_,index) => {
 			this.dotContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.dotContainer.dot.name}" data-slide="${index}"></div>`);
 		});
 		this.controlContainer.appendChild(this.dotContainer);
+	}
+
+	#addControlDotsArray(controlArray) {
+		return controlArray.filter((_,index) => {
+			let controlIndex = (index+1) * this.#opts.slidesPerRow;
+			return this.#sliderElements[controlIndex-1]!==undefined;
+		})
 	}
 
 	#addControlArrows() {
@@ -89,9 +98,11 @@ export default class SliderControls {
 	}
 
 	setActiveDot(slide) {
+
+		this.#opts.controls.dotsCount==='fitRows' && (slide = slide.filter(el => el/this.#opts.slidesPerRow));
 		this.resetDots();
 		slide.forEach(el => {
-			document.querySelector(`.${this.#controlCssClasses.container.dotContainer.dot.name}[data-slide="${el}"]`).classList.add('dot-active')
+			document.querySelector(`.${this.#controlCssClasses.container.dotContainer.dot.name}[data-slide="${el}"]`).classList.add('dot-active');
 		})
 	}
 }
