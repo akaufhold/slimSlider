@@ -68,21 +68,21 @@ body {
     position: relative;
   }
 
-  .cur-element {
-    z-index: 10;
-    transition-duration: .3s;
-  }
-
-  .prev-element {
-    z-index: 5;
-  }
-
   .slider-image-wrapper,
   img {
     transition-duration: .3s;
     transform-style: preserve-3d;
     will-change: auto;
     z-index: 1;
+
+    &.cur-element {
+      z-index: 10;
+      transition-duration: .3s;
+    }
+
+    &.prev-element {
+      z-index: 5;
+    }
   }
 
   .slider-controls {
