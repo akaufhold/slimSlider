@@ -59,7 +59,7 @@ export default class SliderControls {
 		let elementsArray = this.#sliderElements;
 		this.dotContainer = document.createElement('div');
 		this.dotContainer.classList.add(this.#controlCssClasses.container.dotContainer.name);
-		(this.#opts.controls.dotsCount == 'fitRows') && (elementsArray = this.#addControlDotsArray(this.#sliderElements.slice()));
+		(this.#opts.controls.dotsCount === 'fitRows') && (elementsArray = this.#addControlDotsArray(this.#sliderElements.slice()));
 		elementsArray.forEach((_,index) => {
 			this.dotContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.dotContainer.dot.name}" data-slide="${index}"></div>`);
 		});
@@ -91,16 +91,16 @@ export default class SliderControls {
 
 	resetDots(){
 		SliderHelpers.clearInterval();
-		//console.log(this.#controlCssClasses.container.dotContainer.dot.name);
 		this.dotContainer.querySelectorAll(`.${this.#controlCssClasses.container.dotContainer.dot.name}`).forEach((el,index) => {
 			el.classList.remove('dot-active');
 		});
 	}
 
 	setActiveDot(slide) {
-
-		this.#opts.controls.dotsCount==='fitRows' && (slide = slide.filter(el => el/this.#opts.slidesPerRow));
 		this.resetDots();
+		if (this.#opts.controls.dotsCount==='fitRows') {
+			slide = slide.filter(el => el%this.#opts.slidesPerRow===0).map(el => el/this.#opts.slidesPerRow);
+		}
 		slide.forEach(el => {
 			document.querySelector(`.${this.#controlCssClasses.container.dotContainer.dot.name}[data-slide="${el}"]`).classList.add('dot-active');
 		})
