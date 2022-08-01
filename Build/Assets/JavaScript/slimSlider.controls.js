@@ -51,8 +51,7 @@ export default class SliderControls {
 		this.#opts.controls.dots && this.#addControlDots();
 		this.#opts.controls.arrows && this.#addControlArrows();
 		this.#sliderContainer.appendChild(this.controlContainer);
-		this.setActiveDot(this.#opts.controls.dotsCount==='fitRows'?[0]:[...Array(this.#opts.slidesPerRow).keys()]); 
-			//this.setActiveDot([0]);
+		this.#opts.controls.dots && this.setActiveDot(this.#opts.controls.dotsCount==='fitRows'?[0]:[...Array(this.#opts.slidesPerRow).keys()]); 
 	}
 
 	#addControlDots() {
