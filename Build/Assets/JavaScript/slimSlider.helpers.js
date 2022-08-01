@@ -34,10 +34,21 @@ export default class SliderHelpers {
 	}
 
 	static isEven(value){
-		if (value%2 == 0)
+		if (value%2 === 0)
 			return true;
-		else
-			return false;
+		else return false;
+	}
+
+	static isFirst(value, slidesPerRow){
+		if ((value+1)%slidesPerRow === 1)
+			return true;
+		else return false;
+	}
+
+	static isLast(value, slidesPerRow){
+		if ((value+1)%slidesPerRow === 0)
+			return true;
+		else return false;
 	}
 
 	static createWrapperElement(cssClass, htmlElType='div') {
