@@ -50,7 +50,7 @@ class Slider {
 		sliderWrapperClass: "slider-wrapper",
 		elementWrapperClass:'slider-image-wrapper',
 		elementClass:'slider-image',
-		elementType:'div',
+		elementType:'picture',
 		transition: 'fade', /* fade, slide or rotate */
 		transitionTiming: 'linear',
 		type: 'slider', /* slider or gallery */
@@ -90,7 +90,7 @@ class Slider {
 			throw new Error('Slider initialising failed');
 		}
 		finally{
-			this.opts.type == 'slider' && this.createSlider();
+			this.opts.type === 'slider' && this.createSlider();
 			this.opts.controls!== false && this.#addControls();
 			await this.slideTransition('right');
 		}
@@ -224,9 +224,8 @@ class Slider {
 
 	#controlEventKeys() {	
 		document.addEventListener('keydown',function(e){
-			//console.log(e);
-			e.key=='ArrowLeft' && this.showPrevSlides();
-			e.key=='ArrowRight' && this.showNextSlides();
+			e.key==='ArrowLeft' && this.showPrevSlides();
+			e.key==='ArrowRight' && this.showNextSlides();
 		}.bind(this))
 	}
 
@@ -240,7 +239,7 @@ class Slider {
 	/* SETS AND CHECK INDEXES FOR CURRENT, LAST AND OTHER ELEMENTS */
 
 	setIndexIncrement() {
-		this.incIndex = this.getIndexesArray('slidesPerRow',true).length;
+		this.incIndex = this.opts.slidesPerRow;
 	}
 
 	setAllIndexes(start = false, target='right') {
@@ -251,65 +250,86 @@ class Slider {
 
 	setLastIndexes(start = false) {
 		if (start){
-			let lastSliceIndex =  this.incIndex * -1;
-			this.lastIndex = this.getIndexesArray('imgCount').splice(lastSliceIndex);
+			const lastSliceIndex =  this.incIndex * -1;
+			this.lastIndex = this.getIndexesArrayForProp('imgCount').splice(lastSliceIndex);
 		} else {
 			this.lastIndex = this.curIndex;
 		}
 	}
 
 	setCurrentIndexes(start = false, target) {
-		let initialIndexes = this.setInitialIndex(target);
-		if (start || this.checkForCurIndex(target)) {
+		const initialIndexes = this.setInitialIndex(target);
+		if (start || this.checkForLastIndex(target)) {
 			this.curIndex = initialIndexes;
+		} else if (this.checkForFirstIndex(target)) {
+			this.curIndex = this.getIndexesArrayForProp('imgCount').splice(this.incIndex * -1);
 		} else{
-			this.curIndex = this.curIndex.map((value,index) => {
-				if (target==='right')
-					return value + this.incIndex;
-				else if (target==='left')
-					return value - this.incIndex;
-				else {
-					let targetIndex = this.opts.controls.dotsCount==='fitRows'?
-						(target*this.opts.slidesPerRow)+ index:
-						this.getCurrentIndexForTarget(target) + index;
-					return targetIndex;
-				}
+			this.curIndex = this.curIndex.map((value, index) => {
+				return this.setIncrementedIndex(target, value, index);
 			});
 		}
 	}
 
-	setInitialIndex(target) {
-		return this.getIndexesArray('slidesPerRow',target,true);
+	setIncrementedIndex(target, value, index) {
+		if (target==='right')
+			return value + this.incIndex;
+		else if (target==='left')
+			return value - this.incIndex;
+		else {
+			const targetIndex = this.opts.controls.dotsCount==='fitRows'?
+				(target*this.opts.slidesPerRow)+ index:
+				this.getCurrentIndexForTarget(target) + index;
+			return targetIndex;
+		}
 	}
 
-	getIndexesArray(prop, opts = false, target='right') {
-		let arrayTo = opts?this.opts[prop]:this[prop];
-		let arrayInitial = target==='left'?[...Array(arrayTo).keys()]:[...Array(arrayTo).keys()];
-		return arrayInitial;
+	setInitialIndex(target) {
+		return this.getIndexesArrayForProp('slidesPerRow',true, target);
+	}
+
+	getIndexesArrayForProp(prop, opts = false, target='right') {
+		const arrayTo = opts?this.opts[prop]:this[prop];
+		if (Number.isInteger(arrayTo)){
+			const arrayInitial = target==='left'?[...Array(arrayTo).keys()]:[...Array(arrayTo).keys()];
+			return arrayInitial;
+		}
+		else throw new Error(`An error occured for the 'prop' parameter with value ${prop}. It's not existing in constant declaration.`);
+	}
+
+	checkForLastIndex(target='right') {
+		if (target==='left') return;
+		if (target==='right')
+			return this.curIndex.includes(this.imgCount-1);
+		else if (Number.isInteger(target)) return this.curIndex.includes(this.getDotIndexFitRows(target));
+		else throw new Error (`An error occured for parameter "target" with value ${target}. It should be either an integer index number of the next slide or direction 'left' or 'right'`);
+	}
+
+	checkForFirstIndex(target='left') {
+		if (target==='left') 
+			return this.curIndex.includes(0);
+		else return false;
 	}
 
 	checkIndexSelectedAlready(target) {
-		return this.curIndex.includes(this.opts.controls.dotsCount==='fitRows'?target*this.opts.slidesPerRow:target);
+		const index = this.getDotIndexFitRows(target);
+		return this.curIndex.includes(index);
 	}
 
+	getDotIndexFitRows(target){
+		return this.opts.controls.dotsCount==='fitRows'?target*this.incIndex:target
+	}
+	
 	getCurrentIndexForTarget(target) {
-		let arrImageCount = this.getIndexesArray('imgCount').length;
-		let newIndex = this.opts.slidesPerRow * Math.floor(target/this.opts.slidesPerRow);
+		const newIndex = this.incIndex * Math.floor(target/this.incIndex);
 		return newIndex;
 	}
 
 	setOtherIndexes(curIndex,lastIndex) {
-		this.othIndex = this.getIndexesArray('imgCount').filter(el => {
-			let checkLast = curIndex.includes(el);
-			let checkCurs = lastIndex.includes(el);
+		this.othIndex = this.getIndexesArrayForProp('imgCount').filter(el => {
+			const checkLast = curIndex.includes(el);
+			const checkCurs = lastIndex.includes(el);
 			return (!checkLast && !checkCurs);
 		});
-	}
-
-	checkForCurIndex(target='right') {
-		target==='right' && (target=this.imgCount-1);
-		target==='left' && (target=0);
-		return this.curIndex.includes(target);
 	}
 
 	/* TRANSITION AND STYLES */
@@ -340,7 +360,7 @@ class Slider {
 			new Error('Slider not showing next image');
 		}
 		finally{
-			let lastSlide = this.checkForCurIndex();
+			let lastSlide = this.checkForLastIndex();
 			if (this.opts.loop || (!lastSlide)) {
 				this.interval = await SliderHelpers.loop(this.opts.delay);
 				await this.slideTransition(false);
@@ -349,18 +369,18 @@ class Slider {
 	}
 
 	setClassesAndStyles() {
-		this.deleteClasses();
-		this.addToClassList(this.curIndex,this.curElementClass);
-		this.addToClassList(this.lastIndex,this.prevElementClass);
+		this.removeClassesFromElementArr(this.sliderElements);
+		this.addClassToElementArr(this.curIndex,this.curElementClass);
+		this.addClassToElementArr(this.lastIndex,this.prevElementClass);
 		this.setTransitionStyles();
 	}
 
-	addToClassList(indexArr,cssClass) {
+	addClassToElementArr(indexArr,cssClass) {
 		indexArr.forEach((el) => this.sliderElements[el].classList.add(cssClass));
 	}
 
-	deleteClasses() {
-		this.sliderElements.forEach((el) => el.classList.remove(this.curElementClass,this.prevElementClass));
+	removeClassesFromElementArr(obj) {
+		obj.forEach((el) => el.classList.remove(this.curElementClass,this.prevElementClass));
 	}
 
 	setTransitionStyles() {
@@ -368,16 +388,12 @@ class Slider {
 		switch (this.opts.transition) {
 			case 'fade':
 				this.setTransitionStylesFade();
-				if (!this.opts.slidesRowWrap) {
-					this.setCssTransitionProp(transitionTraget,'transform');
-					this.setTransitionStylesTranslate();
-				}
 				break;
 			case 'slide':
 				if (!this.opts.slidesRowWrap) {
 					this.setCssTransitionProp(transitionTraget,'transform');
-					this.setTransitionStylesTranslate();
-				} else this.setElTransitionStylesTranslate();
+					this.setTranslateForWrapper();
+				} else this.setTranslateForElements();
 				break;
 			default:
 				this.setTransitionStylesFade();
@@ -385,43 +401,63 @@ class Slider {
 		}
 	}
 
-	setTransitionStyle(indexArr, styleProp, styleVal) {
+	setTransitionStylesFade() {
+		if (!this.opts.slidesRowWrap) {
+			this.setCssTransitionProp(transitionTraget,'transform');
+			this.setTranslateForWrapper();
+		}
+		this.setStyleForElements(this.othIndex,'opacity','0');
+		this.setStyleForElements(this.curIndex,'opacity','1');
+		this.setStyleForElements(this.lastIndex,'opacity','0');
+	}
+
+	setTranslateForWrapper() {
+		this.#sliderWrapper.style.transform = `translate3d(-${(100/this.sliderElements.length)*this.curIndex[0]}%,0,0)`;
+	}
+
+	setStyleForElements(indexArr, styleProp, styleVal) {
+		//console.log(indexArr, styleProp, styleVal);
 		indexArr === '*' && this.sliderElements.forEach((el) => SliderHelpers.setElStyle(el,styleProp,styleVal));
 		indexArr !== '*' && indexArr.forEach((el) => SliderHelpers.setElStyle(this.sliderElements[el],styleProp,styleVal));
 	}
 
-	setTransitionStylesFade() {
-		this.setTransitionStyle(this.othIndex,'opacity','0');
-		this.setTransitionStyle(this.curIndex,'opacity','1');
-		this.setTransitionStyle(this.lastIndex,'opacity','0');
-	}
-
-	setTransitionStylesTranslate() {
-		this.#sliderWrapper.style.transform = `translate3d(-${(100/this.sliderElements.length)*this.curIndex[0]}%,0,0)`;
-	}
-
-	setElTransitionStylesTranslate() {
+	setTranslateForElements() {
 		this.sliderElements.forEach((el,ind) => {
 			this.setCssTransitionProp(el);
 			this.setCssTransitionTiming(el,this.opts.transitionTiming);
 			let translateX = SliderHelpers.isEven(ind)?'-100%':'100%';
-			el.style.transform = `translate3d(${translateX},0,0)`;
+			this.setStyleForElements([ind],'transform',`translate3d(${translateX},0,0)`);
 		});
-		let targetElements = this.sliderElements.filter((el,index) => this.curIndex.includes(index));
-		targetElements.forEach(el => {
-			el.style.transform = `translate3d(0,0,0)`;
+		this.resetTranslateForElements();
+	}
+
+	resetTranslateForElements(){
+		let targetElements = this.sliderElements.filter((el,index) => {
+			if (this.curIndex.includes(index)){
+				el.originalIndex = index;
+				return true;
+			}
+		});
+		targetElements.forEach((el,ind) => {
+			this.setStyleForElements([el.originalIndex],'transform',`translate3d(0,0,0)`);
 		});
 	}
 }
 
 const slider1 = new Slider(
 	{
-		delay: 5,
+		delay: 50,
+		controls: {
+			arrows: true,
+			dots: true,
+			dotsCount: 'fitRows', /* fitRows or all/empty */
+			events: true
+		},
 		elementType: 'div',
 		loop: true,
 		margin: 0,
 		sliderClass: 'slider',
-		slidesPerRow: 2,
+		slidesPerRow: 3,
 		slidesRowWrap: true,
 		transition: 'slide',
 		transitionTiming: 'ease-in-out',
@@ -431,12 +467,3 @@ const slider1 = new Slider(
 	},
 	'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-4.jpg','Public/Images/img-5.jpg','Public/Images/img-6.jpg'
 );
-
-// let index = 0;
-// var interval = setInterval(function(){
-// 	console.log('interval => index',index);
-// 	index++;
-// },1000)
-// setTimeout(function(){
-// 	clearInterval(interval);
-// },6000)
