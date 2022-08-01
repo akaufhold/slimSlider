@@ -13,6 +13,8 @@ body {
   overflow-x: hidden;
 }
 
+/* SLIDER BASIC STYLES */
+
 .slider {
   max-height: 100vh;
   overflow: hidden;
@@ -84,6 +86,23 @@ body {
       z-index: 5;
     }
   }
+
+  /* SLIDER TRANSITION STYLES */
+
+  .slider-image-wrapper,
+  .slider {
+    &.fade {
+      img {
+        opacity: 0;
+
+        &.cur-element {
+          opacity: 1;
+        }
+      }
+    }
+  }
+
+  /* SLIDER CONTROLS => DOTS AND ARROW NAVIGATION */
 
   .slider-controls {
     .slider-control-dots {
