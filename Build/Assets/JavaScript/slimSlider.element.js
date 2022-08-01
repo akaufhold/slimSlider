@@ -55,6 +55,6 @@ export default class SliderElement {
 	}
 
 	addElementClassesFromOptions(optionName,optionValue,cssClass) {
-		(this.#opts[optionName] == optionValue) && SliderHelpers.setElClass(this.elementnode,cssClass);
+		(this.#opts[optionName] === optionValue) && SliderHelpers.setElClass(this.elementnode,cssClass);
 	}
 }
