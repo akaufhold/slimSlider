@@ -88,15 +88,25 @@ body {
   }
 
   /* SLIDER TRANSITION STYLES */
-
-  .slider-image-wrapper,
-  .slider {
+  .slider,
+  .slider-wrapper,
+  .slider-image-wrapper {
     &.fade {
-      img {
-        opacity: 0;
+      opacity: 0;
+
+      &.cur-element {
+        opacity: 1;
+      }
+    }
+
+    &.clip {
+      .slider-image-wrapper {
+        transition: clip-path 0s .91s, -webkit-clip-path 0s .91s;
+        clip-path: circle(0 at 50vw 50vh);
 
         &.cur-element {
-          opacity: 1;
+          transition: clip-path 2s, -webkit-clip-path 2s;
+          clip-path: circle(100vmax at 50vw 50vh);
         }
       }
     }
