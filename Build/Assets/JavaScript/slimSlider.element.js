@@ -28,6 +28,7 @@ export default class SliderElement {
 		this.setElementStyles(this.elementWrapper?this.elementWrapper:this.elementnode);
 		this.addElementClassesFromOptions('type','gallery','parallel');
 		this.addElementClassesFromOptions('zoomOnHover',true,'zoom');
+		this.addElementClassesFromOptions('vignette',true,'vignette',this.elementWrapper);
 		SliderHelpers.setElClass(this.elementnode,this.#opts.elementClass);
 	}
 
@@ -54,7 +55,7 @@ export default class SliderElement {
 			:SliderHelpers.setElStyle(el,'gridColumnStart',curColumn);
 	}
 
-	addElementClassesFromOptions(optionName,optionValue,cssClass) {
-		(this.#opts[optionName] === optionValue) && SliderHelpers.setElClass(this.elementnode,cssClass);
+	addElementClassesFromOptions(optionName,optionValue,cssClass,target=this.elementnode) {
+		(this.#opts[optionName] === optionValue) && SliderHelpers.setElClass(target,cssClass);
 	}
 }
