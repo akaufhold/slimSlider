@@ -11,17 +11,17 @@ export default class SliderUI {
 
 	#controlCssClasses = {
 		container: {
-			name: 'slider-controls',
+			name: 'slider-ui',
 			dotContainer: {
-				name: 'slider-control-dots',
+				name: 'slider-ui-dots',
 				dot: {
-					name: 'slider-control-dot'
+					name: 'slider-ui-dot'
 				}
 			},
 			arrowContainer: {
-				name: 'slider-control-arrows',
+				name: 'slider-ui-arrows',
 				arrow: {
-					name: 'slider-control-arrow'
+					name: 'slider-ui-arrow'
 				}
 			}
 		}
