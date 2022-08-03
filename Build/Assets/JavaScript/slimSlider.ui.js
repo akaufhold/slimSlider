@@ -48,8 +48,8 @@ export default class SliderUI {
 	init() {
 		this.controlContainer = document.createElement('div');
 		this.controlContainer.classList.add(this.#controlCssClasses.container.name);
-		this.#opts.controls.dots && this.#addUIDots();
 		this.#opts.controls.arrows && this.#addUIArrows();
+		this.#opts.controls.dots && this.#addUIDots();
 		this.#sliderContainer.appendChild(this.controlContainer);
 		this.#opts.controls.dots && this.setActiveDot(this.#opts.controls.dotsCount==='fitRows'?[0]:[...Array(this.#opts.slidesPerRow).keys()]); 
 	}
@@ -60,7 +60,7 @@ export default class SliderUI {
 		this.dotContainer.classList.add(this.#controlCssClasses.container.dotContainer.name);
 		(this.#opts.controls.dotsCount === 'fitRows') && (elementsArray = this.#addUIDotsArray(this.#sliderElements.slice()));
 		elementsArray.forEach((_,index) => {
-			this.dotContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.dotContainer.dot.name}" data-slide="${index}"></div>`);
+			this.dotContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.dotContainer.dot.name}" data-slide="${index}" tabindex="${index++}" role="button"></div>`);
 		});
 		this.controlContainer.appendChild(this.dotContainer);
 	}
@@ -83,7 +83,9 @@ export default class SliderUI {
 
 	#addUIArrowsSingle(direction){
 		let arrow = document.createElement('div');
-		arrow.classList.add(`${this.#controlCssClasses.container.arrowContainer.arrow.name}-${direction}`);
+		arrow.classList.add(`${this.#controlCssClasses.container.arrowContainer.arrow.name}`,`${this.#controlCssClasses.container.arrowContainer.arrow.name}-${direction}`);
+		arrow.setAttribute('role', 'button');
+		arrow.setAttribute('tabindex', '0');
 		this.arrowContainer.wrapper.appendChild(arrow);
 		return arrow;
 	}
