@@ -32,7 +32,7 @@ export default class SliderWrapper {
 	}
 
 	async setWrapperHeight(el) {
-		this.getWrapperMaxHeight().then((res) => this.wrapper.style.maxHeight = `${res}px`);
+		this.getWrapperMaxHeight().then((res) => this.wrapper.style.height = `${res}px`);
 	}
 
 	setWrapperWidth(){
