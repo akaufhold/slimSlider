@@ -92,7 +92,7 @@ class Slider {
 		}
 		finally{
 			this.opts.type === 'slider' && this.createSlider();
-			this.opts.controls!== false && this.#addUI();
+			this.opts.controls!== false && (this.opts.slidesPerRow < this.imgCount) && this.#addUI();
 			await this.#slideTransition('right');
 		}
 	}
@@ -137,9 +137,9 @@ class Slider {
 		try{
 			let parentStyles = this.#sliderContainer;
 			this.createSliderElements();
-			if ((this.opts.slidesPerRow > 1) || (!this.opts.slidesRowWrap)){
+			//if ((this.opts.slidesPerRow > 1) || (!this.opts.slidesRowWrap)){
 				this.#sliderWrapper = parentStyles = this.createSliderWrapper();
-			}
+			//}
 			this.setContainerCss(parentStyles);
 		}
 		catch(err){
@@ -156,7 +156,7 @@ class Slider {
 	createSliderElements() {
 		this.images.length && this.#deleteImages();
 		this.imgsLoaded.forEach((el,index) => {
-			let sliderElement = new SliderElement(this.opts,this.#sliderContainer,el,index);
+			let sliderElement = new SliderElement(this.opts,this.#sliderContainer,el,index,this.imgCount);
 			sliderElement.elementnode.addEventListener('load',function(){
 				alert('load');
 			})
@@ -171,9 +171,8 @@ class Slider {
 		el.style.transitionProperty = this.getCssTransitionProp();
 	}
 
-	getCssTransitionProp(addProp='transform') {
-		console.log(`${this.getCssTransitionPropFromDefault()}${addProp && ','+addProp}`);
-		return `${this.getCssTransitionPropFromDefault()}${addProp && ','+addProp}`;
+	getCssTransitionProp(addProp=false) {
+		return `${this.getCssTransitionPropFromDefault()}${addProp?','+addProp:''}`;
 	}
 
 	getCssTransitionPropFromDefault() {
@@ -228,17 +227,23 @@ class Slider {
 	}
 
 	#addUIEventsDots() {
-		this.sliderUI.dotContainer.addEventListener('click',function(e){
+		this.sliderUI.dotContainer.addEventListener('click', function(e){
 			const {slide} = e.target.dataset;
 			Number.isInteger(parseInt(slide)) && this.showSlides(Number(slide));
 		}.bind(this), false);
 	}
 
 	#addUIEventKeys() {	
-		document.addEventListener('keydown',function(e){
+		document.addEventListener('keydown', function(e){
 			e.key==='ArrowLeft' && this.showPrevSlides();
 			e.key==='ArrowRight' && this.showNextSlides();
 		}.bind(this))
+		this.sliderUI.arrowContainer.sliderButtonLeft.addEventListener('keyup', (e) => (e.keyCode === 13) && this.showPrevSlides());
+		this.sliderUI.arrowContainer.sliderButtonRight.addEventListener('keyup', (e) => (e.keyCode === 13) &&  this.showNextSlides());
+		this.sliderUI.dotContainer.addEventListener('keyup', function(e){
+			const {slide} = e.target.dataset;
+			Number.isInteger(parseInt(slide)) && (e.keyCode === 13) && this.showSlides(Number(slide));
+		}.bind(this), false);
 	}
 
 	/* SETS AND CHECK INDEXES FOR CURRENT, LAST AND OTHER ELEMENTS */
@@ -264,32 +269,50 @@ class Slider {
 
 	#setCurrentIndexes(start = false, target) {
 		const initialIndexes = this.#setInitialIndex(target);
+		const indexOffset = this.#getIndexOverflow(target);
 		if (start || this.#checkForLastIndex(target)) {
 			this.curIndex = initialIndexes;
 		} else if (this.#checkForFirstIndex(target)) {
-			this.curIndex = this.#getIndexesArrayForProp('imgCount').splice(this.incIndex * -1);
+				this.curIndex = this.#getIndexesArrayForProp('imgCount').splice(this.incIndex * -1);
 		} else{
-			this.curIndex = this.curIndex.map((value, index) => {
-				return this.#setIncrementedIndex(target, value, index);
-			});
+				this.curIndex = this.curIndex.map((value, index) => {
+					return this.#setIncrementedIndex(target, value, index, indexOffset);
+				});
 		}
+	}
+
+	#setOtherIndexes(curIndex,lastIndex) {
+		this.othIndex = this.#getIndexesArrayForProp('imgCount').filter(el => {
+			const checkLast = curIndex.includes(el);
+			const checkCurs = lastIndex.includes(el);
+			return (!checkLast && !checkCurs);
+		});
 	}
 
 	#setInitialIndex(target) {
 		return this.#getIndexesArrayForProp('slidesPerRow',true, target);
 	}
 
-	#setIncrementedIndex(target, value, index) {
+	#setIncrementedIndex(target, value, index, indexOffset) {
+		let targetIndex;
 		if (target==='right')
-			return value + this.incIndex;
+			targetIndex = value + this.incIndex + indexOffset;
 		else if (target==='left')
-			return value - this.incIndex;
+			targetIndex = value - this.incIndex + indexOffset;
 		else {
-			const targetIndex = this.opts.controls.dotsCount==='fitRows'?
-				(target*this.opts.slidesPerRow)+ index:
-				this.#getCurrentIndexForTarget(target) + index;
-			return targetIndex;
+			targetIndex = this.opts.controls.dotsCount==='fitRows'?
+				(target*this.opts.slidesPerRow) + index:
+				this.#getCurrentIndexForTarget(target) + index + indexOffset;
 		}
+		return targetIndex;
+	}
+
+	#getIndexOverflow(target) {
+		let overflowOffset = 0;
+		target==='left' && this.curIndex.filter(el => (el+1-this.incIndex) < 0).length && (overflowOffset = Math.abs(this.curIndex[0] - this.incIndex)); 
+		target==='right' && this.curIndex.filter(el => (el+1+this.incIndex) > this.imgCount).length && (overflowOffset = this.imgCount - this.curIndex.at(-1) - 1 - this.incIndex);
+		Number.isInteger(target) && (overflowOffset = this.curIndex.map((el,ind) => el = this.#getCurrentIndexForTarget(target)+ind).filter(el => (el+1) > this.imgCount).length * -1);
+		return overflowOffset;
 	}
 
 	#getIndexesArrayForProp(prop, opts = false, target='right') {
@@ -329,14 +352,6 @@ class Slider {
 		return newIndex;
 	}
 
-	#setOtherIndexes(curIndex,lastIndex) {
-		this.othIndex = this.#getIndexesArrayForProp('imgCount').filter(el => {
-			const checkLast = curIndex.includes(el);
-			const checkCurs = lastIndex.includes(el);
-			return (!checkLast && !checkCurs);
-		});
-	}
-
 	/* TRANSITION AND STYLES */
 
 	showSlides(index) {
@@ -373,26 +388,32 @@ class Slider {
 		}
 	}
 
-	setClassesAndStyles() {
+	/* REMOVE AND ADD CUR AND PREV CLASSES / SET CSS STYLING FOR TRANSITIONS  */ 
+
+	async setClassesAndStyles() {
 		this.removeClassesFromElementArr(this.sliderElements);
 		this.addClassToElementArr(this.curIndex,this.curElementClass);
 		this.addClassToElementArr(this.lastIndex,this.prevElementClass);
+		await SliderHelpers.waitForElement(`.${this.curElementClass}`);
 		this.#setTransitionStyles();
 	}
 
-	addClassToElementArr(indexArr,cssClass) {
-		indexArr.forEach((el) => this.sliderElements[el].classList.add(cssClass));
+	addClassToElementArr(indexArr,cssClass,notContains=this.curElementClass) {
+		indexArr.forEach((el) => {
+			!this.sliderElements[el].classList.contains(notContains) && this.sliderElements[el].classList.add(cssClass);
+		});
 	}
 
 	removeClassesFromElementArr(obj) {
 		obj.forEach((el) => el.classList.remove(this.curElementClass,this.prevElementClass));
 	}
 
+	/* SET TRANSITION STYLE PER TYPE */ 
+
 	#setTransitionStyles() {
 		let transitionTarget = this.#sliderWrapper?this.#sliderWrapper:this.#sliderContainer;
 		//var transitionFunctionName = String(`setTransitionStyles${this.opts.transition.slice(0,1).toUpperCase()}${this.opts.transition.slice(1)}`);
 		//this[transitionFunctionName](transitionTarget);
-		// console.log(`(${transitionTarget})`);
 		switch (this.opts.transition) {
 			case 'fade':
 				SliderHelpers.setElClass(transitionTarget,'fade');
@@ -412,6 +433,8 @@ class Slider {
 		}
 	}
 
+	/* FADE TRANSITION */
+
 	#setTransitionStylesFade(transitionTarget) {
 		if (!this.opts.slidesRowWrap) {
 			transitionTarget.style.transitionProperty = this.getCssTransitionProp('transform');
@@ -419,27 +442,16 @@ class Slider {
 		}
 	}
 
+	/* SLIDE TRANSITION */
+
 	#setTransitionStylesTranslate(transitionTarget){
 		if (!this.opts.slidesRowWrap) {
-			transitionTarget.style.transitionProperty = this.getCssTransitionProp('transform');
-			this.#setTranslateForTarget();
-		} else this.#setTranslateForElements();
-	}
-
-	#setTransitionStylesClip(transitionTarget){
-		if (!this.opts.slidesRowWrap) {
-			transitionTarget.style.transitionProperty = this.getCssTransitionProp(transitionTarget,'transform');
-			this.#setTranslateForTarget();
+			this.#setTranslateForTarget(transitionTarget);
 		} else this.#setTranslateForElements();
 	}
 
 	#setTranslateForTarget(transitionTarget=this.#sliderWrapper) {
 		transitionTarget.style.transform = `translate3d(-${(100/this.sliderElements.length)*this.curIndex[0]}%,0,0)`;
-	}
-
-	#setStyleForElements(indexArr, styleProp, styleVal) {
-		indexArr === '*' && this.sliderElements.forEach((el) => SliderHelpers.setElStyle(el,styleProp,styleVal));
-		indexArr !== '*' && indexArr.forEach((el) => SliderHelpers.setElStyle(this.sliderElements[el],styleProp,styleVal));
 	}
 
 	#setTranslateForElements() {
@@ -451,13 +463,20 @@ class Slider {
 		});
 		this.#resetTranslateForElements();
 	}
-	
+
+	#setStyleForElements(indexArr, styleProp, styleVal) {
+		indexArr === '*' && this.sliderElements.forEach((el) => SliderHelpers.setElStyle(el,styleProp,styleVal));
+		indexArr !== '*' && indexArr.forEach((el) => SliderHelpers.setElStyle(this.sliderElements[el],styleProp,styleVal));
+	}
+
 	#setTranslateXForElements(ind, rowWrap) {
 		let translateX = '-100%';
+		let firstElement = this.curIndex.at(0);
+		let lastElement = this.curIndex.at(-1);
 		if (rowWrap){
-			translateX = '0%';
-			SliderHelpers.isFirst(ind, this.opts.slidesPerRow) && (translateX = '-100%');
-			SliderHelpers.isLast(ind, this.opts.slidesPerRow) && (translateX = '100%');
+			translateX = '0';
+			(firstElement === ind) && (translateX = '-100%');
+			(lastElement 	=== ind) && (translateX = '100%');
 		}
 		return translateX;
 	}
@@ -473,6 +492,15 @@ class Slider {
 			this.#setStyleForElements([el.originalIndex],'transform',`translate3d(0,0,0)`);
 		});
 	}
+
+	/* CLIP TRANSITION */
+
+	#setTransitionStylesClip(transitionTarget){
+		if (!this.opts.slidesRowWrap) {
+			transitionTarget.style.transitionProperty = this.getCssTransitionProp('transform');
+			this.#setTranslateForTarget();
+		}
+	}
 }
 
 const slider1 = new Slider(
@@ -481,7 +509,7 @@ const slider1 = new Slider(
 		controls: {
 			arrows: true,
 			dots: true,
-			dotsCount: 'fitRows', /* fitRows or all/empty */
+			dotsCount: 'all', /* fitRows or all/empty */
 			events: true
 		},
 		elementType: 'div',
