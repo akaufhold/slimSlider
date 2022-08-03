@@ -7,12 +7,14 @@ export default class SliderElement {
 	elementnode;
 	#opts;
 	#index;
+	#slidesCount;
 
 	constructor(
 		options,
 		sliderContainer,
 		element,
-		index
+		index,
+		slidesCount
 	){
 		for (const option of Object.entries(options)) {
 			this.#opts = options;
@@ -20,6 +22,7 @@ export default class SliderElement {
 		this.#sliderContainer = sliderContainer;
 		this.elementnode 			= element;
 		this.#index 					= index;
+		this.#slidesCount     = slidesCount;
 		this.init();
 	}
 
@@ -49,6 +52,10 @@ export default class SliderElement {
 		let curColumn = this.#opts.slidesRowWrap ? 
 										(this.#index+1)%this.#opts.slidesPerRow : 
 										(this.#index+1);
+		/*let lastElementCount = this.#slidesCount % this.#opts.slidesPerRow; 
+		let lastElementsOffset = this.#slidesCount - lastElementCount;
+		(this.#index+1) > lastElementsOffset && (curColumn+=lastElementCount);
+		console.log(this.#index, lastElementsOffset, (this.#index+1) > lastElementsOffset);*/
 		SliderHelpers.setElStyle(el,'gridRowStart',1);
 		(curColumn === 0)
 			?SliderHelpers.setElStyle(el,'gridColumnStart',this.#opts.slidesPerRow)
