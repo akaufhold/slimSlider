@@ -27,6 +27,7 @@ export default class SliderElement {
 	}
 
 	init() {
+		(typeof this.elementnode.dataset==='object') && this.#setElementWrapperType('figure');
 		this.isElementWrapped() && this.#setElementWrapper();
 		this.#setElementStyles(this.elementWrapper?this.elementWrapper:this.elementnode);
 		this.#addElementClassesFromOptions('type','gallery','parallel');
@@ -49,8 +50,8 @@ export default class SliderElement {
 		this.#sliderContainer.insertAdjacentElement('beforeEnd',this.elementWrapper);
 	}
 
-	#setElementWrapperType() {
-		this.#opts.elementType = 'figure';
+	#setElementWrapperType(type) {
+		this.#opts.elementType = type;
 	}
 
 	#setElementContent() {
@@ -63,7 +64,7 @@ export default class SliderElement {
 		elementWrapper =  SliderHelpers.wrapAround(headerWrap,elementWrapper);
 		elementWrapper =  SliderHelpers.wrapAround(textWrap,elementWrapper);
 		elementWrapper =  SliderHelpers.wrapAround(linkWrap,elementWrapper);
-		console.log(elementWrapper, headerWrap);
+		return elementWrapper;
 	}
 
 	#createElementContent(text, cssClass, htmlTag) {
