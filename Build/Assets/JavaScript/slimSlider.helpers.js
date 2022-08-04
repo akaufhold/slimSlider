@@ -29,7 +29,7 @@ export default class SliderHelpers {
 	}
 
 	static wrapAround(el, wrapper) {
-		(el.length > 1) ? el.forEach(el => wrapper.appendChild(el)) : wrapper.appendChild(el);
+		(el.length > 1 && el.nodeType !== 3) ? el.forEach(el => wrapper.appendChild(el)) : wrapper.appendChild(el);
 		return wrapper;
 	}
 
@@ -51,7 +51,7 @@ export default class SliderHelpers {
 		else return false;
 	}
 
-	static createWrapperElement(cssClass, htmlElType='div') {
+	static createWrapperElement (cssClass, htmlElType='div') {
 		let wrapper = document.createElement(htmlElType);
 		SliderHelpers.setElClass(wrapper,cssClass);
 		return wrapper;
