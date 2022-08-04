@@ -132,12 +132,20 @@ body {
 
   .slider-ui {
     .slider-ui-dots {
-      position: absolute;
+      background: rgb(75 75 75 / 0%);
+      border-radius: 12px;
       bottom: 5%;
+      display: flex;
       left: 50%;
       transform: translateX(-50%);
-      display: flex;
+      padding: 8px 10px;
+      position: absolute;
+      transition-duration: .35s;
       z-index: 100;
+
+      &:hover {
+        background: rgb(0 0 0 / 35%);
+      }
 
       .slider-ui-dot {
         border: 1px solid #fff;
@@ -146,7 +154,7 @@ body {
         height: 1rem;
         width: 1rem;
         border-radius: 50%;
-        margin-right: 1.75rem;
+        margin-right: 1.5rem;
         cursor: pointer;
         transition: all .5s;
 
@@ -267,3 +275,27 @@ body {
     }
   }
 }
+
+/* .arrow-clipped {
+  background-color: #fff;
+  clip-path:
+    polygon(
+      24.5% 26.5%,
+      62% 26.5%,
+      53% 34%,
+      38% 50%,
+      53% 66%,
+      53% 61%,
+      43% 50%,
+      53% 39%,
+      53% 26.5%,
+      74.5% 26.5%,
+      74.5% 76.5%,
+      24.5% 76.5%);
+  display: flex;
+  position: absolute;
+  height: 100px;
+  top: 10px;
+  width: 100px;
+  z-index: 100;
+} */
