@@ -27,19 +27,20 @@ export default class SliderElement {
 	}
 
 	init() {
-		this.isElementWrapped() && this.setElementWrapper();
-		this.setElementStyles(this.elementWrapper?this.elementWrapper:this.elementnode);
-		this.addElementClassesFromOptions('type','gallery','parallel');
-		this.addElementClassesFromOptions('zoomOnHover',true,'zoom');
-		this.addElementClassesFromOptions('vignette',true,'vignette',this.elementWrapper);
+		this.isElementWrapped() && this.#setElementWrapper();
+		this.#setElementStyles(this.elementWrapper?this.elementWrapper:this.elementnode);
+		this.#addElementClassesFromOptions('type','gallery','parallel');
+		this.#addElementClassesFromOptions('zoomOnHover',true,'zoom');
+		this.#addElementClassesFromOptions('vignette',true,'vignette',this.elementWrapper);
 		SliderHelpers.setElClass(this.elementnode,this.#opts.elementClass);
+		this.#setElementContent();
 	}
 
-	isElementWrapped(){
+	isElementWrapped() {
 		return this.elementIsWrapped = (this.#opts.vignette || this.#opts.zoomOnHover) && true;
 	}
 
-	setElementWrapper() {
+	#setElementWrapper() {
 		this.#index===0 && (this.#sliderContainer.innerHTML = '');
 		this.elementWrapper = SliderHelpers.wrapAround(
 			this.elementnode,
@@ -48,7 +49,33 @@ export default class SliderElement {
 		this.#sliderContainer.insertAdjacentElement('beforeEnd',this.elementWrapper);
 	}
 
-	setElementStyles(el) {
+	#setElementWrapperType() {
+		this.#opts.elementType = 'figure';
+	}
+
+	#setElementContent() {
+		let {head,text,link} = this.elementnode.dataset;
+		let headerWrap, textWrap, linkWrap;
+		let elementWrapper = SliderHelpers.createWrapperElement('figcaption');
+		head && (headerWrap = this.#createElementContent(head,'header',this.#opts.headerTag));
+		text && (textWrap = this.#createElementContent(text,'description','p'));
+		link && (linkWrap = this.#createElementContent(link,'link','a'));
+		elementWrapper =  SliderHelpers.wrapAround(headerWrap,elementWrapper);
+		elementWrapper =  SliderHelpers.wrapAround(textWrap,elementWrapper);
+		elementWrapper =  SliderHelpers.wrapAround(linkWrap,elementWrapper);
+		console.log(elementWrapper, headerWrap);
+	}
+
+	#createElementContent(text, cssClass, htmlTag) {
+		let element = document.createTextNode(text);
+		let elementWrap = SliderHelpers.wrapAround(
+			element,
+			SliderHelpers.createWrapperElement(`slider-${cssClass}`,htmlTag)
+		);
+		return elementWrap;
+	}
+
+	#setElementStyles(el) {
 		let curColumn = this.#opts.slidesRowWrap ? 
 										(this.#index+1)%this.#opts.slidesPerRow : 
 										(this.#index+1);
@@ -62,7 +89,7 @@ export default class SliderElement {
 			:SliderHelpers.setElStyle(el,'gridColumnStart',curColumn);
 	}
 
-	addElementClassesFromOptions(optionName,optionValue,cssClass,target=this.elementnode) {
+	#addElementClassesFromOptions(optionName,optionValue,cssClass,target=this.elementnode) {
 		(this.#opts[optionName] === optionValue) && SliderHelpers.setElClass(target,cssClass);
 	}
 }
