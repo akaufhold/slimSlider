@@ -4,7 +4,6 @@
     background: rgb(255 255 255 / 75%);
     display: flex;
     flex-direction: column;
-    font-size: 10px;
     grid-area: a;
     grid-column-start: 1;
     grid-row-start: 1;
@@ -31,16 +30,15 @@
       //background-color: var(--green1);
       cursor: pointer;
       display: inline-block;
-      font-size: 1.25rem;
+      font-size: 1.5em;
       margin-top: 10px;
-      padding: .3rem .75rem .275rem;
+      padding: .4em 1.5em .35em;
       text-transform: uppercase;
       text-align: center;
       background: transparent;
       background-color: transparent;
       border: .14rem solid var(--red3);
       font-weight: 600;
-      letter-spacing: .1rem;
       outline: none;
       overflow: hidden;
       width: auto;
