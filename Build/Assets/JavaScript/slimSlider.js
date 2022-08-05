@@ -37,6 +37,7 @@ class Slider {
 		controls: {
 			arrows: true,
 			dots: true,
+			keys: true,
 			dotsCount: 'fitRows', /* fitRows or all/empty */
 			events: true
 		},
@@ -236,9 +237,10 @@ class Slider {
 	}
 
 	#addUIEvents() {
-		this.opts.controls.arrows && this.#addUIEventsArrow();
-		this.opts.controls.dots && this.#addUIEventsDots();
+		this.opts.controls.events && this.opts.controls.arrows && this.#addUIEventsArrow();
+		this.opts.controls.events && this.opts.controls.dots && this.#addUIEventsDots();
 		this.opts.controls.events && this.#addUIEventKeys();
+		this.opts.controls.touch && this.#addUIEventsDrag();
 	}
 
 	#addUIEventsArrow() {
@@ -265,6 +267,54 @@ class Slider {
 			Number.isInteger(parseInt(slide)) && (e.keyCode === 13) && this.showSlides(Number(slide));
 		}.bind(this), false);
 	}
+
+	#addUIEventsDrag() {
+			this.sliderElements.onmousedown = dragStart;
+			this.sliderElements.addEventListener('touchstart', this.#addUIEventsDragStart);
+			this.sliderElements.addEventListener('touchend', this.#addUIEventsDragEnd);
+			this.sliderElements.addEventListener('touchmove', this.#addUIEventsDragAction);
+	}
+
+	#addUIEventsDragStart (e) {
+    e = e || window.event;
+    e.preventDefault();
+    posInitial = items.offsetLeft;
+    
+    if (e.type == 'touchstart') {
+      posX1 = e.touches[0].clientX;
+    } else {
+      posX1 = e.clientX;
+      document.onmouseup = this.#addUIEventsDragEnd;
+      document.onmousemove = this.#addUIEventsDragAction;
+    }
+  }
+
+  #addUIEventsDragAction (e) {
+    e = e || window.event;
+    
+    if (e.type == 'touchmove') {
+      posX2 = posX1 - e.touches[0].clientX;
+      posX1 = e.touches[0].clientX;
+    } else {
+      posX2 = posX1 - e.clientX;
+      posX1 = e.clientX;
+    }
+    items.style.left = (items.offsetLeft - posX2) + "px";
+  }
+  
+  #addUIEventsDragEnd (e) {
+    posFinal = items.offsetLeft;
+    if (posFinal - posInitial < -threshold) {
+      shiftSlide(1, 'drag');
+    } else if (posFinal - posInitial > threshold) {
+      shiftSlide(-1, 'drag');
+    } else {
+      items.style.left = (posInitial) + "px";
+    }
+
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
 
 	/* SETS AND CHECK INDEXES FOR CURRENT, LAST AND OTHER ELEMENTS */
 
@@ -539,16 +589,16 @@ const defaultOptions = {
 	controls: {
 		arrows: true,
 		dots: true,
-		dotsCount: 'all', /* fitRows or all/empty */
+		dotsCount: 'fitRows', /* fitRows or all/empty */
 		events: true
 	},
 	elementType: 'div',
 	loop: true,
 	margin: 0,
 	sliderClass: 'slider',
-	slidesPerRow: 3,
+	slidesPerRow: 2,
 	slidesRowWrap: true,
-	transition: 'fade',
+	transition: 'circle',
 	transitionTiming: 'ease-in-out',
 	type:'slider', 
 	vignette: true,
