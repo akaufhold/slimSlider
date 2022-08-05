@@ -34,11 +34,15 @@ export default class SliderElement {
 		this.#addElementClassesFromOptions('zoomOnHover',true,'zoom');
 		this.#addElementClassesFromOptions('vignette',true,'vignette',this.elementWrapper);
 		SliderHelpers.setElClass(this.elementnode,this.#opts.elementClass);
-		this.#setElementContent();
+		this.elementWrapper.appendChild(this.#getElementContentContainer());
+	}
+
+	#setElementWrapperType(type) {
+		this.#opts.elementType = type;
 	}
 
 	isElementWrapped() {
-		return this.elementIsWrapped = (this.#opts.vignette || this.#opts.zoomOnHover) && true;
+		return this.elementIsWrapped = (this.#opts.vignette || this.#opts.zoomOnHover || typeof this.elementnode.dataset==='object') && true;
 	}
 
 	#setElementWrapper() {
@@ -50,40 +54,10 @@ export default class SliderElement {
 		this.#sliderContainer.insertAdjacentElement('beforeEnd',this.elementWrapper);
 	}
 
-	#setElementWrapperType(type) {
-		this.#opts.elementType = type;
-	}
-
-	#setElementContent() {
-		let {head,text,link} = this.elementnode.dataset;
-		let headerWrap, textWrap, linkWrap;
-		let elementWrapper = SliderHelpers.createWrapperElement('figcaption');
-		head && (headerWrap = this.#createElementContent(head,'header',this.#opts.headerTag));
-		text && (textWrap = this.#createElementContent(text,'description','p'));
-		link && (linkWrap = this.#createElementContent(link,'link','a'));
-		elementWrapper =  SliderHelpers.wrapAround(headerWrap,elementWrapper);
-		elementWrapper =  SliderHelpers.wrapAround(textWrap,elementWrapper);
-		elementWrapper =  SliderHelpers.wrapAround(linkWrap,elementWrapper);
-		return elementWrapper;
-	}
-
-	#createElementContent(text, cssClass, htmlTag) {
-		let element = document.createTextNode(text);
-		let elementWrap = SliderHelpers.wrapAround(
-			element,
-			SliderHelpers.createWrapperElement(`slider-${cssClass}`,htmlTag)
-		);
-		return elementWrap;
-	}
-
 	#setElementStyles(el) {
 		let curColumn = this.#opts.slidesRowWrap ? 
 										(this.#index+1)%this.#opts.slidesPerRow : 
 										(this.#index+1);
-		/*let lastElementCount = this.#slidesCount % this.#opts.slidesPerRow; 
-		let lastElementsOffset = this.#slidesCount - lastElementCount;
-		(this.#index+1) > lastElementsOffset && (curColumn+=lastElementCount);
-		console.log(this.#index, lastElementsOffset, (this.#index+1) > lastElementsOffset);*/
 		SliderHelpers.setElStyle(el,'gridRowStart',1);
 		(curColumn === 0)
 			?SliderHelpers.setElStyle(el,'gridColumnStart',this.#opts.slidesPerRow)
@@ -92,5 +66,32 @@ export default class SliderElement {
 
 	#addElementClassesFromOptions(optionName,optionValue,cssClass,target=this.elementnode) {
 		(this.#opts[optionName] === optionValue) && SliderHelpers.setElClass(target,cssClass);
+	}
+
+	#createElementContent(text, cssClass, htmlTag) {
+		let element = document.createTextNode(text);
+		return SliderHelpers.wrapAround(
+			element,
+			SliderHelpers.createWrapperElement(`slider-${cssClass}`,htmlTag)
+		);
+	}
+
+	#createAdditionalElements(parentWrapper,transition) {
+		let circle = SliderHelpers.createCircleSvg();
+		if (transition==='circle'){
+			this.#sliderContainer.insertAdjacentHTML('beforeend',SliderHelpers.createCircleSvg());
+			this.#sliderContainer.insertAdjacentHTML('beforeend',SliderHelpers.createCircleSvg('right'));
+		}
+		this.#sliderContainer.appendChild(circle);
+	}
+
+	#getElementContentContainer() {
+		let {head,text,link} = this.elementnode.dataset;
+		let headerWrap, textWrap, linkWrap, elementWrapper = SliderHelpers.createWrapperElement('slider-image-overlay','div');
+		elementWrapper.classList.add(`slider-color-${this.#opts.elementOverlayColor}`,`overlay-style-${this.#opts.elementOverlayStyle}`);
+		head && (headerWrap = this.#createElementContent(head,'header',this.#opts.headerTag)) && (elementWrapper = SliderHelpers.wrapAround(headerWrap,elementWrapper));
+		text && (textWrap = this.#createElementContent(text,'description','p')) && (elementWrapper = SliderHelpers.wrapAround(textWrap,elementWrapper));
+		link && (linkWrap = this.#createElementContent('mehr','link','a')) && (elementWrapper =  SliderHelpers.wrapAround(linkWrap,elementWrapper));
+		return elementWrapper;
 	}
 }
