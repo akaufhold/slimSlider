@@ -1,0 +1,64 @@
+/* SLIDER BASIC STYLES */
+
+.slider {
+  max-height: 100vh;
+  overflow: hidden;
+  place-items: center;
+  place-content: center;
+  position: relative;
+
+  div.slider-wrapper {
+    z-index: 10;
+    overflow: hidden;
+    position: relative;
+    transition-duration: .5s;
+
+    .slider-image-wrapper {
+      display: grid;
+      overflow: hidden;
+      position: relative;
+      max-height: 100vh;
+      grid-template-columns: 1fr;
+    }
+
+    .slider-image-wrapper,
+    img {
+
+      transform-style: preserve-3d;
+      will-change: auto;
+      z-index: 1;
+
+      &.cur-element {
+        z-index: 10;
+      }
+
+      &.prev-element {
+        z-index: 5;
+      }
+    }
+
+    img {
+      max-width: 100%;
+      object-fit: cover;
+      overflow: hidden;
+      display: grid;
+      grid-column-start: 1;
+      grid-row-start: 1;
+
+      &.parallel {
+        width: 40rem;
+        margin: 2rem;
+        border: 3rem solid white;
+        box-shadow: 0 2rem 5rem 1rem rgb(0 0 0 / 10%);
+      }
+
+      &.zoom {
+        transition: .5s;
+
+        &:hover {
+          transform: scale(1.1);
+        }
+      }
+    }
+  }
+}
