@@ -24,8 +24,8 @@ export default class SliderWrapper {
 	}
 
 	getImagesForWrapperMaxHeight(){
-		if ([...this.elementsToWrap].filter(el => el.nodeName==='DIV').length){
-			return [...this.elementsToWrap].filter(el => el.nodeName==='DIV').map(el => el.childNodes[0]);
+		if ([...this.elementsToWrap].length){
+			return [...this.elementsToWrap].map(el => el.childNodes[0]);
 		}
 		else
 			return [...this.elementsToWrap];

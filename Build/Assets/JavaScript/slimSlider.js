@@ -49,9 +49,12 @@ class Slider {
 		sliderClass:"slider",
 		sliderWrapperClass: "slider-wrapper",
 		elementWrapperClass:'slider-image-wrapper',
-		elementClass:'slider-image',
 		elementType:'picture',
-		transition: 'fade', /* fade, slide or rotate */
+		elementClass:'slider-image',
+		elementOverlayStyle:'circle',
+		elementOverlayColor:'red',
+		headerTag: 'h3',
+		transition: 'circle', /* fade, slide or rotate */
 		transitionTiming: 'linear',
 		type: 'slider', /* slider or gallery */
 		vignette: false,
@@ -62,28 +65,30 @@ class Slider {
 		fade: 'opacity',
 		slide: 'transform',
 		rotate: 'transform',
-		clip: 'clip'
+		clip: 'clip',
+		circle: 'fill'
 	}
 
 	constructor(
+		sliderContainer,
 		options = {},
 		...images
 	){
 		for (const option of Object.entries(options)){
 			this.options[option[0]] = options[option[0]] || option[1];
 		}
+		this.#sliderContainer 	= sliderContainer;
 		this.opts 		= this.options;
-		this.images 	= images;
-		this.imgCount = images.length;
+		this.images 	= images.length ? images : Array.from(this.#loadImagesFromDom());
+		this.imgCount = this.images.length;
 		this.opts.loop && (this.interval = '');
-		this.#setAllIndexes(true);
 		this.#setIndexIncrement();
-		this.init();
+		this.images.length && this.init();
 	}
 
 	async init() {
 		try{
-			this.#sliderContainer 	= document.querySelector(`.${this.opts.sliderClass}`);
+			this.#setAllIndexes(true);
 			this.imgsLoaded 		 		= await this.#loadAllImages(this.opts);
 		}
 		catch(err){
@@ -91,7 +96,7 @@ class Slider {
 			throw new Error('Slider initialising failed');
 		}
 		finally{
-			this.opts.type === 'slider' && this.createSlider();
+			this.opts.type === 'slider' && this.#createSlider();
 			this.opts.controls!== false && (this.opts.slidesPerRow < this.imgCount) && this.#addUI();
 			await this.#slideTransition('right');
 		}
@@ -99,19 +104,30 @@ class Slider {
 
 	/* LAZYLOADING IMAGES */
 
+	#loadImagesFromDom() {
+		return document.querySelectorAll(`.${this.opts.sliderClass}`)[0].children;
+	}
+
 	async #loadAllImages() {
 		try{
-			if (!this.imgsLoaded){
+			console.log(!this.imgsLoaded);
+			if (!this.imgsLoaded) {
+				/*typeof this.images=='object' && this.images.map(el => Object.assign(el.getAttribute('src')));*/
+				//console.log(await Promise.all(this.images.map(async image => this.#loadSingleImage(image))));
 				return await Promise.all(this.images.map(async image => this.#loadSingleImage(image)));
-			}		
-		}catch(error){
+
+			}	else {
+				console.log(this.imgsLoaded);
+				return Promise.resolve();
+			}
+		}catch(error) {
 			new Error(`Image loading failed `); 
 		}
 	};
 
 	async #loadSingleImage(path) {
 		try {
-			return await this.#createImage(path)
+			return await this.#createImage(path);
 		}
 		catch(err){
 			console.error(err)
@@ -119,11 +135,17 @@ class Slider {
 	};
 
 	async #createImage(path) {
-		return new Promise(function(res,rej){
-			let image = document.createElement('img');
-			image.src = path;
+		return new Promise(function(res,rej) {
+			let image;
+			if (typeof path==='string') {
+				image = document.createElement('img');
+				image.src = path;
+			} else {
+				image = Object.assign(path);
+			}
 			image.addEventListener('load', () => res(image), false);
 			image.addEventListener('error', () => rej(new Error(`Failed to load img > ${image.src}`)), false);
+			image.dispatchEvent(new Event('load'));
 		});
 	}
 
@@ -133,14 +155,15 @@ class Slider {
 
 	/* CREATE SLIDER, WRAPPER AND ELEMENTS */
 
-	createSlider() {
+	#createSlider() {
 		try{
-			let parentStyles = this.#sliderContainer;
-			this.createSliderElements();
+			let parentWrapper = this.#sliderContainer;
+			this.#createSliderElements();
 			//if ((this.opts.slidesPerRow > 1) || (!this.opts.slidesRowWrap)){
-				this.#sliderWrapper = parentStyles = this.createSliderWrapper();
+				this.#sliderWrapper = parentWrapper = this.#createSliderWrapper();	
 			//}
-			this.setContainerCss(parentStyles);
+
+			this.#setContainerCss(parentWrapper);
 		}
 		catch(err){
 			console.log(err);
@@ -148,34 +171,31 @@ class Slider {
 		}
 	}
 
-	createSliderWrapper() {
+	#createSliderWrapper() {
 		let sliderWrapper = new SliderWrapper(this.opts,this.#sliderContainer,this.sliderElements);
-		return document.querySelector(`.${sliderWrapper.wrapper.className}`);
+		return this.#sliderContainer.querySelector(`.${sliderWrapper.wrapper.className}`);
 	}
 
-	createSliderElements() {
+	#createSliderElements() {
 		this.images.length && this.#deleteImages();
 		this.imgsLoaded.forEach((el,index) => {
 			let sliderElement = new SliderElement(this.opts,this.#sliderContainer,el,index,this.imgCount);
-			sliderElement.elementnode.addEventListener('load',function(){
-				alert('load');
-			})
 			this.sliderElements.push(sliderElement.elementIsWrapped ? sliderElement.elementWrapper : sliderElement.elementnode);
 		});
 	}
 
 	/* SET CSS FOR SLIDER CONTAINER */
 
-	setContainerCss(el) {
-		this.setContainerCssGrid(el);
-		el.style.transitionProperty = this.getCssTransitionProp();
+	#setContainerCss(el) {
+		this.#setContainerCssGrid(el);
+		el.style.transitionProperty = this.#getCssTransitionProp();
 	}
 
-	getCssTransitionProp(addProp=false) {
-		return `${this.getCssTransitionPropFromDefault()}${addProp?','+addProp:''}`;
+	#getCssTransitionProp(addProp=false) {
+		return `${this.#getCssTransitionPropFromDefault()}${addProp?','+addProp:''}`;
 	}
 
-	getCssTransitionPropFromDefault() {
+	#getCssTransitionPropFromDefault() {
 		try{
 			return this.transitions[this.opts.transition];
 		}
@@ -184,18 +204,18 @@ class Slider {
 		}
 	}
 
-	setCssTransitionTiming(el,prop) {
+	#setCssTransitionTiming(el,prop) {
 		el.style.transitionTiming = `${prop}`;
 	}
 
-	setContainerCssGrid(el) {
+	#setContainerCssGrid(el) {
 		SliderHelpers.setElStyle(el,'display','grid');
 		SliderHelpers.setElStyle(el,'justifyContent','center');
-		SliderHelpers.setElStyle(el,'gridTemplateColumns',this.getGridColumnString());
+		SliderHelpers.setElStyle(el,'gridTemplateColumns',this.#getGridColumnString());
 		this.opts.margin && SliderHelpers.setElStyle(el,'gridColumnGap',`${this.opts.margin}px`);
 	}
 
-	getGridColumnString() {
+	#getGridColumnString() {
 		if (this.opts.slidesRowWrap){
 			let gridTemplateColumnsString = '';
 			for (let i=0; i<this.opts.slidesPerRow; i++){
@@ -227,14 +247,14 @@ class Slider {
 	}
 
 	#addUIEventsDots() {
-		this.sliderUI.dotContainer.addEventListener('click', function(e){
+		this.sliderUI.dotContainer.addEventListener('click', function(e) {
 			const {slide} = e.target.dataset;
 			Number.isInteger(parseInt(slide)) && this.showSlides(Number(slide));
 		}.bind(this), false);
 	}
 
 	#addUIEventKeys() {	
-		document.addEventListener('keydown', function(e){
+		document.addEventListener('keydown', function(e) {
 			e.key==='ArrowLeft' && this.showPrevSlides();
 			e.key==='ArrowRight' && this.showNextSlides();
 		}.bind(this))
@@ -414,10 +434,14 @@ class Slider {
 		let transitionTarget = this.#sliderWrapper?this.#sliderWrapper:this.#sliderContainer;
 		//var transitionFunctionName = String(`setTransitionStyles${this.opts.transition.slice(0,1).toUpperCase()}${this.opts.transition.slice(1)}`);
 		//this[transitionFunctionName](transitionTarget);
+		if (!this.opts.slidesRowWrap) {
+			transitionTarget.style.transitionProperty = this.#getCssTransitionProp('transform');
+			this.#setTranslateForTarget(transitionTarget);
+		}
 		switch (this.opts.transition) {
 			case 'fade':
 				SliderHelpers.setElClass(transitionTarget,'fade');
-				this.#setTransitionStylesFade(transitionTarget);
+				//this.#setTransitionStylesFade(transitionTarget);
 				break;
 			case 'slide':
 				SliderHelpers.setElClass(transitionTarget,'slide');
@@ -425,7 +449,11 @@ class Slider {
 				break;
 			case 'clip':
 				SliderHelpers.setElClass(transitionTarget,'clip');
-				this.#setTransitionStylesClip(transitionTarget);
+				//this.#setTransitionStylesClip(transitionTarget);
+				break;
+			case 'circle':
+				SliderHelpers.setElClass(transitionTarget,'circle');
+				this.#setTransitionStylesCircle(transitionTarget);
 				break;
 			default:
 				this.#setTransitionStylesFade();
@@ -436,10 +464,7 @@ class Slider {
 	/* FADE TRANSITION */
 
 	#setTransitionStylesFade(transitionTarget) {
-		if (!this.opts.slidesRowWrap) {
-			transitionTarget.style.transitionProperty = this.getCssTransitionProp('transform');
-			this.#setTranslateForTarget(transitionTarget);
-		}
+
 	}
 
 	/* SLIDE TRANSITION */
@@ -456,8 +481,8 @@ class Slider {
 
 	#setTranslateForElements() {
 		this.sliderElements.forEach((el,ind) => {
-			el.style.transitionProperty = this.getCssTransitionProp();
-			this.setCssTransitionTiming(el,this.opts.transitionTiming);
+			el.style.transitionProperty = this.#getCssTransitionProp();
+			this.#setCssTransitionTiming(el,this.opts.transitionTiming);
 			const translateX = this.#setTranslateXForElements(ind, this.opts.slidesRowWrap);
 			this.#setStyleForElements([ind],'transform',`translate3d(${translateX},0,0)`);
 		});
@@ -496,33 +521,43 @@ class Slider {
 	/* CLIP TRANSITION */
 
 	#setTransitionStylesClip(transitionTarget){
+
+	}
+
+	/* CIRCLE TRANSITION */
+
+	#setTransitionStylesCircle(transitionTarget){
 		if (!this.opts.slidesRowWrap) {
-			transitionTarget.style.transitionProperty = this.getCssTransitionProp('transform');
+			transitionTarget.style.transitionProperty = this.#getCssTransitionProp('transform');
 			this.#setTranslateForTarget();
 		}
 	}
 }
 
-const slider1 = new Slider(
-	{
-		delay: 50,
-		controls: {
-			arrows: true,
-			dots: true,
-			dotsCount: 'all', /* fitRows or all/empty */
-			events: true
-		},
-		elementType: 'div',
-		loop: true,
-		margin: 0,
-		sliderClass: 'slider',
-		slidesPerRow: 1,
-		slidesRowWrap: true,
-		transition: 'clip',
-		transitionTiming: 'ease-in-out',
-		type:'slider', 
-		vignette: true,
-		zoomOnHover: false
+const defaultOptions = {
+	delay: 50,
+	controls: {
+		arrows: true,
+		dots: true,
+		dotsCount: 'all', /* fitRows or all/empty */
+		events: true
 	},
-	'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-4.jpg','Public/Images/img-5.jpg','Public/Images/img-6.jpg'
-);
+	elementType: 'div',
+	loop: true,
+	margin: 0,
+	sliderClass: 'slider',
+	slidesPerRow: 3,
+	slidesRowWrap: true,
+	transition: 'fade',
+	transitionTiming: 'ease-in-out',
+	type:'slider', 
+	vignette: true,
+	zoomOnHover: false
+}
+
+document.querySelectorAll(`.${defaultOptions.sliderClass}`).forEach(sliderElement => {
+	const slider1 = new Slider(sliderElement,defaultOptions
+		/*,'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-4.jpg','Public/Images/img-5.jpg','Public/Images/img-6.jpg'*/
+	);
+});
+
