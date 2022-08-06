@@ -67,7 +67,8 @@ class Slider {
 		slide: 'transform',
 		rotate: 'transform',
 		clip: 'clip',
-		circle: 'fill'
+		circle: 'fill',
+		blur: 'transform'
 	}
 
 	constructor(
@@ -505,6 +506,10 @@ class Slider {
 				SliderHelpers.setElClass(transitionTarget,'circle');
 				this.#setTransitionStylesCircle(transitionTarget);
 				break;
+			case 'blur':
+				SliderHelpers.setElClass(transitionTarget,'blur');
+				//this.#setTransitionStylesCircle(transitionTarget);
+				break;		
 			default:
 				this.#setTransitionStylesFade();
 				break;
@@ -533,27 +538,33 @@ class Slider {
 		this.sliderElements.forEach((el,ind) => {
 			el.style.transitionProperty = this.#getCssTransitionProp();
 			this.#setCssTransitionTiming(el,this.opts.transitionTiming);
-			const translateX = this.#setTranslateXForElements(ind, this.opts.slidesRowWrap);
-			this.#setStyleForElements([ind],'transform',`translate3d(${translateX},0,0)`);
+			let translateX = this.#setTranslateXForElements(ind, this.opts.slidesRowWrap);
+			let translateY = this.#setTranslateYForElements(ind, this.opts.slidesRowWrap);
+			this.#setStyleForElements([ind],'transform',`translate3d(${translateX},${translateY},0)`);
 		});
 		this.#resetTranslateForElements();
 	}
 
 	#setStyleForElements(indexArr, styleProp, styleVal) {
 		indexArr === '*' && this.sliderElements.forEach((el) => SliderHelpers.setElStyle(el,styleProp,styleVal));
-		indexArr !== '*' && indexArr.forEach((el) => SliderHelpers.setElStyle(this.sliderElements[el],styleProp,styleVal));
+		indexArr !== '*' && indexArr.forEach((el) => {
+			SliderHelpers.setElStyle(this.sliderElements[el],styleProp,styleVal);
+		});
 	}
 
 	#setTranslateXForElements(ind, rowWrap) {
-		let translateX = '-100%';
-		let firstElement = this.curIndex.at(0);
-		let lastElement = this.curIndex.at(-1);
-		if (rowWrap){
-			translateX = '0';
-			(firstElement === ind) && (translateX = '-100%');
-			(lastElement 	=== ind) && (translateX = '100%');
+		let translateX;
+		if (rowWrap) {
+			((this.lastIndex.at(0) === ind) || (this.othIndex.at(0) === ind)) && (translateX = '-100%');
+			((this.lastIndex.at(-1) 	=== ind) || (this.othIndex.at(-1) === ind)) && (translateX = '100%');
 		}
 		return translateX;
+	}
+
+	#setTranslateYForElements(ind, rowWrap) {
+		let translateY = '0%';
+		this.opts.slidesPerRow > 2 && rowWrap && (this.othIndex.includes(ind)) && (translateY = '-100%');
+		return translateY;
 	}
 
 	#resetTranslateForElements(){
@@ -597,8 +608,8 @@ const defaultOptions = {
 	margin: 0,
 	sliderClass: 'slider',
 	slidesPerRow: 2,
-	slidesRowWrap: true,
-	transition: 'circle',
+	slidesRowWrap: false,
+	transition: 'blur',
 	transitionTiming: 'ease-in-out',
 	type:'slider', 
 	vignette: true,
