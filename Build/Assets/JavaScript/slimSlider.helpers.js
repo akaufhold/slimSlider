@@ -29,6 +29,7 @@ export default class SliderHelpers {
 	}
 
 	static wrapAround(el, wrapper) {
+		//console.log(el, el.nodeType); 
 		(el.length > 1 && el.nodeType !== 3) ? el.forEach(el => wrapper.appendChild(el)) : wrapper.appendChild(el);
 		return wrapper;
 	}
@@ -82,12 +83,13 @@ export default class SliderHelpers {
 
 	static createCircleSvg(align='left') {
 		let circle = document.createElement('div');
-		circle.classList.add(align);
-		circle.innerHTML = `<svg id="circleSvg" class="circle" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">`;
+		circle.classList.add('slider-transition-overlay',align);
+		let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+		svg.id = 'circleSvg';
 		for (var i = 0; i < 9; i++) {
-			circle.innerHTML += `<circle id="circle${i}" class="circle${i} steap" cx="0px" cy="49%" r="${(i*12.5)-12.5}%"></circle>`;
-		}		
-		circle.innerHTML += `</svg>`;
+			svg.innerHTML += `<circle id="circle${i}" class="circle${i} steap" cx="50%" cy="50%" r="${(i*12.5)}%"></circle>`;
+		}
+		circle.appendChild(svg);
 		return circle;
 	}
 }
