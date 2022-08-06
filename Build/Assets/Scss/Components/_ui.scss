@@ -18,18 +18,22 @@
       }
 
       .slider-ui-dot {
-        border: 1px solid var(--white);
-        background-color: var(--gray);
-        opacity: .7;
-        height: 1rem;
-        width: 1rem;
         border-radius: 50%;
-        margin-right: 1.5rem;
+        border: 1px solid var(--white);
+        background-color: transparent;
         cursor: pointer;
+        height: 1rem;
+        margin-right: 1.5rem;
+        opacity: .7;
         transition: all .5s;
+        width: 1rem;
 
         &:last-child {
           margin: 0;
+        }
+
+        &:hover {
+          background-color: var(--white-75);
         }
 
         &.dot-active {
