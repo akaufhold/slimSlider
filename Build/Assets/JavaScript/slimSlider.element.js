@@ -30,11 +30,10 @@ export default class SliderElement {
 		(typeof this.elementnode.dataset==='object') && this.#setElementWrapperType('figure');
 		this.isElementWrapped() && this.#setElementWrapper();
 		this.#setElementStyles(this.elementWrapper?this.elementWrapper:this.elementnode);
-		this.#addElementClassesFromOptions('type','gallery','parallel');
-		this.#addElementClassesFromOptions('zoomOnHover',true,'zoom');
-		this.#addElementClassesFromOptions('vignette',true,'vignette',this.elementWrapper);
+		this.#setElementClasses();
 		SliderHelpers.setElClass(this.elementnode,this.#opts.elementClass);
-		this.elementWrapper.appendChild(this.#getElementContentContainer());
+		this.elementWrapper.appendChild(this.#createElementContentWrapper());
+		this.#createAdditionalElements(this.#opts.transition);
 	}
 
 	#setElementWrapperType(type) {
@@ -55,43 +54,46 @@ export default class SliderElement {
 	}
 
 	#setElementStyles(el) {
-		let curColumn = this.#opts.slidesRowWrap ? 
-										(this.#index+1)%this.#opts.slidesPerRow : 
-										(this.#index+1);
+		let curColumn = this.#opts.slidesRowWrap ? (this.#index+1)%this.#opts.slidesPerRow : (this.#index+1);
 		SliderHelpers.setElStyle(el,'gridRowStart',1);
-		(curColumn === 0)
-			?SliderHelpers.setElStyle(el,'gridColumnStart',this.#opts.slidesPerRow)
-			:SliderHelpers.setElStyle(el,'gridColumnStart',curColumn);
+		(curColumn === 0) ? SliderHelpers.setElStyle(el,'gridColumnStart',this.#opts.slidesPerRow) : SliderHelpers.setElStyle(el,'gridColumnStart',curColumn);
 	}
 
-	#addElementClassesFromOptions(optionName,optionValue,cssClass,target=this.elementnode) {
-		(this.#opts[optionName] === optionValue) && SliderHelpers.setElClass(target,cssClass);
+	#setElementClasses() {
+		this.#opts.type === 'gallery' && SliderHelpers.setElClass(this.elementWrapper,'parallel');
+		this.#opts.zoomOnHover && SliderHelpers.setElClass(this.elementWrapper,'zoom');
+		this.#opts.vignette && SliderHelpers.setElClass(this.elementWrapper,'vignette');
 	}
 
-	#createElementContent(text, cssClass, htmlTag) {
-		let element = document.createTextNode(text);
-		return SliderHelpers.wrapAround(
-			element,
-			SliderHelpers.createWrapperElement(`slider-${cssClass}`,htmlTag)
-		);
+	#createAdditionalElements(transition) {
+		//console.log(transition);
+		(transition==='circle') && this.#createAddtionalElementsCirle();
 	}
 
-	#createAdditionalElements(parentWrapper,transition) {
-		let circle = SliderHelpers.createCircleSvg();
-		if (transition==='circle'){
-			this.#sliderContainer.insertAdjacentHTML('beforeend',SliderHelpers.createCircleSvg());
-			this.#sliderContainer.insertAdjacentHTML('beforeend',SliderHelpers.createCircleSvg('right'));
-		}
-		this.#sliderContainer.appendChild(circle);
+	#createAddtionalElementsCirle(){
+		//let circle = SliderHelpers.createCircleSvg();
+		//console.log(this.#sliderContainer, circle);
+		this.elementWrapper.insertAdjacentElement('beforeend',SliderHelpers.createCircleSvg('center'));
+		//this.elementWrapper.insertAdjacentElement('beforeend',SliderHelpers.createCircleSvg('right'));
+		//this.elementWrapper.appendChild(circle);
 	}
 
-	#getElementContentContainer() {
+	#createElementContentWrapper() {
 		let {head,text,link} = this.elementnode.dataset;
 		let headerWrap, textWrap, linkWrap, elementWrapper = SliderHelpers.createWrapperElement('slider-image-overlay','div');
 		elementWrapper.classList.add(`slider-color-${this.#opts.elementOverlayColor}`,`overlay-style-${this.#opts.elementOverlayStyle}`);
+		elementWrapper.style.fontSize = `${11-this.#opts.slidesPerRow}px`;
 		head && (headerWrap = this.#createElementContent(head,'header',this.#opts.headerTag)) && (elementWrapper = SliderHelpers.wrapAround(headerWrap,elementWrapper));
 		text && (textWrap = this.#createElementContent(text,'description','p')) && (elementWrapper = SliderHelpers.wrapAround(textWrap,elementWrapper));
 		link && (linkWrap = this.#createElementContent('mehr','link','a')) && (elementWrapper =  SliderHelpers.wrapAround(linkWrap,elementWrapper));
 		return elementWrapper;
+	}
+
+	#createElementContent(text, cssClass, htmlTag) {
+		let textNode = document.createTextNode(text);
+		return SliderHelpers.wrapAround(
+			textNode,
+			SliderHelpers.createWrapperElement(`slider-${cssClass}`,htmlTag)
+		);
 	}
 }
