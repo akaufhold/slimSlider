@@ -18,31 +18,23 @@ export default class SliderWrapper {
 		this.wrapper = SliderHelpers.wrapAround(this.elementsToWrap,SliderHelpers.createWrapperElement(this.#opts.sliderWrapperClass));
 		this.#container.innerHTML = '';
 		this.#container.insertAdjacentElement('afterbegin',this.wrapper);
-		this.wrapperDomElement = document.querySelector(`.${this.#opts.sliderWrapperClass}`);
+		this.wrapperDomElement = this.#container.querySelector(`.${this.#opts.sliderWrapperClass}`);
 		this.setWrapperHeight();
-		!this.#opts.slidesRowWrap && this.setWrapperWidth();
-	}
-
-	getImagesForWrapperMaxHeight(){
-		if ([...this.elementsToWrap].length){
-			return [...this.elementsToWrap].map(el => el.childNodes[0]);
-		}
-		else
-			return [...this.elementsToWrap];
+		!this.#opts.slidesRowWrap && this.#setWrapperWidth();
 	}
 
 	async setWrapperHeight(el) {
-		this.getWrapperMaxHeight().then((res) => this.wrapper.style.height = `${res}px`);
+		this.#getWrapperMaxHeight().then((res) => this.wrapper.style.height = `${res}px`);
 	}
 
-	setWrapperWidth(){
+	#setWrapperWidth(){
 		let wrapperWidth = `${(this.elementsToWrap.length/this.#opts.slidesPerRow)*100}%`;
 		this.wrapperDomElement.style.width = wrapperWidth;
 	}
 
-	async getWrapperMaxHeight() {
+	async #getWrapperMaxHeight() {
 		try {
-			let imagesTarget = this.getImagesForWrapperMaxHeight();
+			let imagesTarget = this.#getImagesForWrapperMaxHeight();
 			let sliderElementsHeights = await Promise.all(imagesTarget.map(async (el,index) => {
 				await SliderHelpers.waitForElement(`.${this.#opts.sliderWrapperClass}`,10);
 				return Number(parseInt(window.getComputedStyle(el).height));
@@ -57,5 +49,13 @@ export default class SliderWrapper {
 				`Element heights could not be returned \r\n`
 			);
 		}
+	}
+
+	#getImagesForWrapperMaxHeight(){
+		if ([...this.elementsToWrap].length){
+			return [...this.elementsToWrap].map(el => el.childNodes[0]);
+		}
+		else
+			return [...this.elementsToWrap];
 	}
 }
