@@ -25,9 +25,11 @@ class Slider {
 	incIndex = 1;
 	interval;
 
-	/* OTHER DEFAULTS */
+	/* CSS CLASS DEFAULTS */
 	curElementClass = 'cur-element';
 	prevElementClass = 'prev-element';
+
+	/* CSS DEFAULTS */
 	sliderElementsHeights = '100vh';
 
 	/* OPTIONS */
@@ -607,9 +609,9 @@ const defaultOptions = {
 	loop: true,
 	margin: 0,
 	sliderClass: 'slider',
-	slidesPerRow: 2,
-	slidesRowWrap: false,
-	transition: 'blur',
+	slidesPerRow: 1,
+	slidesRowWrap: true,
+	transition: 'circle',
 	transitionTiming: 'ease-in-out',
 	type:'slider', 
 	vignette: true,
