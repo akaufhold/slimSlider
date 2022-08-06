@@ -1,4 +1,30 @@
 /* SLIDER TRANSITION STYLES */
+
+@keyframes circleStroke {
+  0% {
+    stroke-width: 0;
+    opacity: 0;
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  50% {
+    stroke-width: 25%;
+    opacity: 1;
+  }
+
+  75% {
+    opacity: 1;
+  }
+
+  100% {
+    stroke-width: 0;
+    opacity: 0;
+  }
+}
+
 .slider,
 .slider-wrapper {
   > * {
@@ -7,7 +33,16 @@
 
   .slider-image-overlay {
     transition: transform .75s ease-in-out .1s;
-    transform: rotateX(90deg);
+  }
+
+  .slider-transition-overlay {
+    svg {
+      @for $i from 1 through 20 {
+        > *:nth-child(#{$i}) {
+          animation-delay: calc(.05s * #{$i});
+        }
+      }
+    }
   }
 
   &.fade {
@@ -47,18 +82,70 @@
 
   &.circle {
     .slider-image-wrapper {
-      &.cur-element {
-        .slider-image-overlay {
-          transform: scale(1);
+      .slider-transition-overlay {
+        grid-area: a;
+        grid-column-start: 1;
+        grid-row-start: 1;
+        position: relative;
+        z-index: 40;
+
+        svg {
+          width: 100%;
+          height: 100%;
+          display: block;
+
+          circle {
+            stroke: #fff;
+            fill: none;
+            transition-duration: .3s;
+          }
         }
       }
+
+      &.cur-element {
+        .slider-transition-overlay {
+          svg {
+            circle {
+              animation-name: circleStroke;
+              animation-duration: 1s;
+              animation-fill-mode: forwards;
+              animation-timing-function: linear;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  &.blur {
+    transition-property: filter;
+
+    > * {
+      transform: filter(0);
+    }
+
+    .slider-image-wrapper {
+      &.cur-element {
+        .slider-image-overlay {
+          transform: filter(1);
+        }
+      }
+    }
+  }
+
+  /* SLIDER OVERLAY STYLES */
+
+  .overlay-style-circle {
+    &.slider-image-overlay {
+      transition-delay: .5s;
+      transform: scale(0);
     }
   }
 
   .cur-element {
     .overlay-style-circle {
       &.slider-image-overlay {
-        transform: rotateX(0deg);
+        transform: scale(1);
       }
     }
   }
