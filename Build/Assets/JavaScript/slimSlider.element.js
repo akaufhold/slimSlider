@@ -51,6 +51,7 @@ export default class SliderElement {
 			SliderHelpers.createWrapperElement(this.#opts.elementWrapperClass,this.#opts.elementType)
 		);
 		this.#sliderContainer.insertAdjacentElement('beforeEnd',this.elementWrapper);
+		this.#sliderContainer.classList.add(`slider-color-${this.#opts.colorTheme}`);
 	}
 
 	#setElementStyles(el) {
@@ -66,22 +67,23 @@ export default class SliderElement {
 	}
 
 	#createAdditionalElements(transition) {
-		//console.log(transition);
-		(transition==='circle') && this.#createAddtionalElementsCirle();
+		transition==='circle' && this.#createAddtionalElementsCirle();
+		transition==='rect' && this.#createAddtionalElementsRect();
+		((transition==='circle') || (transition==='rect')) && this.#sliderContainer.style.setProperty('--stroke-width', `${100/this.#opts.svgAmount*2}%`);
 	}
 
 	#createAddtionalElementsCirle(){
-		//let circle = SliderHelpers.createCircleSvg();
-		//console.log(this.#sliderContainer, circle);
-		this.elementWrapper.insertAdjacentElement('beforeend',SliderHelpers.createCircleSvg('center'));
-		//this.elementWrapper.insertAdjacentElement('beforeend',SliderHelpers.createCircleSvg('right'));
-		//this.elementWrapper.appendChild(circle);
+		this.elementWrapper.insertAdjacentElement('beforeend',SliderHelpers.createSvg('circle','center',this.#opts.svgAmount));
+	}
+
+	#createAddtionalElementsRect(){
+		this.elementWrapper.insertAdjacentElement('beforeend',SliderHelpers.createSvg('rect','center',this.#opts.svgAmount));
 	}
 
 	#createElementContentWrapper() {
 		let {head,text,link} = this.elementnode.dataset;
 		let headerWrap, textWrap, linkWrap, elementWrapper = SliderHelpers.createWrapperElement('slider-image-overlay','div');
-		elementWrapper.classList.add(`slider-color-${this.#opts.elementOverlayColor}`,`overlay-style-${this.#opts.elementOverlayStyle}`);
+		elementWrapper.classList.add(`overlay-style-${this.#opts.elementOverlayStyle}`);
 		elementWrapper.style.fontSize = `${11-this.#opts.slidesPerRow}px`;
 		head && (headerWrap = this.#createElementContent(head,'header',this.#opts.headerTag)) && (elementWrapper = SliderHelpers.wrapAround(headerWrap,elementWrapper));
 		text && (textWrap = this.#createElementContent(text,'description','p')) && (elementWrapper = SliderHelpers.wrapAround(textWrap,elementWrapper));

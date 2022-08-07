@@ -55,9 +55,10 @@ class Slider {
 		elementType:'picture',
 		elementClass:'slider-image',
 		elementOverlayStyle:'circle',
-		elementOverlayColor:'red',
+		colorTheme:'red',
 		headerTag: 'h3',
-		transition: 'circle', /* fade, slide or rotate */
+		svgAmount: 15,
+		transition: 'rect', /* fade, slide or rotate */
 		transitionTiming: 'linear',
 		type: 'slider', /* slider or gallery */
 		vignette: false,
@@ -69,8 +70,9 @@ class Slider {
 		slide: 'transform',
 		rotate: 'transform',
 		clip: 'clip',
-		circle: 'fill',
-		blur: 'transform'
+		circle: 'stroke-width',
+		blur: 'transform',
+		rect: 'stroke-width'
 	}
 
 	constructor(
@@ -512,6 +514,10 @@ class Slider {
 				SliderHelpers.setElClass(transitionTarget,'blur');
 				//this.#setTransitionStylesCircle(transitionTarget);
 				break;		
+			case 'rect':
+				SliderHelpers.setElClass(transitionTarget,'rect');
+				//this.#setTransitionStylesCircle(transitionTarget);
+				break;	
 			default:
 				this.#setTransitionStylesFade();
 				break;
@@ -611,7 +617,7 @@ const defaultOptions = {
 	sliderClass: 'slider',
 	slidesPerRow: 1,
 	slidesRowWrap: true,
-	transition: 'circle',
+	transition: 'rect',
 	transitionTiming: 'ease-in-out',
 	type:'slider', 
 	vignette: true,

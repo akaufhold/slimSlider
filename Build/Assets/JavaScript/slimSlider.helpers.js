@@ -81,15 +81,30 @@ export default class SliderHelpers {
 		});
 	}
 
-	static createCircleSvg(align='left') {
+	static createSvg(svgType, align='left', sectionsTotal) {
+		console.log(svgType, align, sectionsTotal);
 		let circle = document.createElement('div');
 		circle.classList.add('slider-transition-overlay',align);
 		let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-		svg.id = 'circleSvg';
-		for (var i = 0; i < 9; i++) {
-			svg.innerHTML += `<circle id="circle${i}" class="circle${i} steap" cx="50%" cy="50%" r="${(i*12.5)}%"></circle>`;
-		}
+		svg.id = `${svgType}Svg`;
+		svg.classList.add(`${svgType}-amount-${sectionsTotal}`);
+		svgType === 'circle' && (svg = this.createSvgCircle(svg,sectionsTotal));
+		svgType === 'rect' && (svg = this.createSvgRect(svg,sectionsTotal));
 		circle.appendChild(svg);
 		return circle;
+	}
+
+	static createSvgCircle(svg, sectionsTotal) {
+		for (var i = 0; i < sectionsTotal; i++) {
+			svg.innerHTML += `<circle id="circle${i}" class="circle${i}" cx="50%" cy="50%" r="${(100/sectionsTotal*i)}%"></circle>`;
+		}
+		return svg;
+	}
+
+	static createSvgRect(svg, sectionsTotal) {
+		for (var i = 0; i < sectionsTotal; i++) {
+			svg.innerHTML += `<rect id="rect${i}" class="rect${i}" x="${100/sectionsTotal*i}%" y="0" width="${100/sectionsTotal}%" height="100%"></circle>`;
+		}
+		return svg;
 	}
 }
