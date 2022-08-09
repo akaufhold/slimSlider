@@ -10,7 +10,7 @@ import SliderUI from './slimSlider.ui';
 class Slider {
 	/* DOM ELEMENTS */
 	#sliderContainer;
-	#sliderWrapper = false;
+	sliderWrapper = false;
 	sliderElements = [];
 	imgsLoaded = false;
 	
@@ -24,6 +24,16 @@ class Slider {
 	othIndex;
 	incIndex = 1;
 	interval;
+
+	/* TOUCH EVENT POSITIONS */
+	posX1 = 0;
+	posX2 = 0;
+  posInitial;
+	posFinal;
+	dragEnd;
+	dragAction;
+	transitionTarget;
+	transitionDefault; 
 
 	/* CSS CLASS DEFAULTS */
 	curElementClass = 'cur-element';
@@ -43,6 +53,11 @@ class Slider {
 			dotsCount: 'fitRows', /* fitRows or all/empty */
 			events: true
 		},
+		events: {
+			touch: {
+				threshold: 100
+			}
+		},
 		delay: 6,
 		loop: true, 
 		margin: 0,
@@ -57,9 +72,10 @@ class Slider {
 		elementOverlayStyle:'circle',
 		colorTheme:'red',
 		headerTag: 'h3',
-		svgAmount: 15,
 		transition: 'rect', /* fade, slide or rotate */
 		transitionTiming: 'linear',
+		transitionSegments: 15,
+		transitionDuration: 1500,
 		type: 'slider', /* slider or gallery */
 		vignette: false,
 		zoomOnHover: true
@@ -72,7 +88,8 @@ class Slider {
 		clip: 'clip',
 		circle: 'stroke-width',
 		blur: 'transform',
-		rect: 'stroke-width'
+		rect: 'stroke-width',
+		clones: 'transform'
 	}
 
 	constructor(
@@ -90,6 +107,8 @@ class Slider {
 		this.opts.loop && (this.interval = '');
 		this.#setIndexIncrement();
 		this.images.length && this.init();
+		this.dragEnd = this.addUIEventsDragEnd.bind(this);
+		this.dragAction = this.addUIEventsDragAction.bind(this);
 	}
 
 	async init() {
@@ -102,7 +121,7 @@ class Slider {
 			throw new Error('Slider initialising failed');
 		}
 		finally{
-			this.opts.type === 'slider' && this.#createSlider();
+			this.opts.type === 'slider' && await this.#createSlider();
 			this.opts.controls!== false && (this.opts.slidesPerRow < this.imgCount) && this.#addUI();
 			await this.#slideTransition('right');
 		}
@@ -116,7 +135,6 @@ class Slider {
 
 	async #loadAllImages() {
 		try{
-			console.log(!this.imgsLoaded);
 			if (!this.imgsLoaded) {
 				/*typeof this.images=='object' && this.images.map(el => Object.assign(el.getAttribute('src')));*/
 				//console.log(await Promise.all(this.images.map(async image => this.#loadSingleImage(image))));
@@ -161,20 +179,23 @@ class Slider {
 
 	/* CREATE SLIDER, WRAPPER AND ELEMENTS */
 
-	#createSlider() {
-		try{
-			let parentWrapper = this.#sliderContainer;
-			this.#createSliderElements();
-			//if ((this.opts.slidesPerRow > 1) || (!this.opts.slidesRowWrap)){
-				this.#sliderWrapper = parentWrapper = this.#createSliderWrapper();	
-			//}
-
-			this.#setContainerCss(parentWrapper);
-		}
-		catch(err){
-			console.log(err);
-			new Error('Slider not created');
-		}
+	async #createSlider() {
+		return new Promise((res,rej) => {
+			try{
+				let parentWrapper = this.#sliderContainer;
+				this.#createSliderElements();
+				//if ((this.opts.slidesPerRow > 1) || (!this.opts.slidesRowWrap)){
+					this.sliderWrapper = parentWrapper = this.#createSliderWrapper();	
+				//}
+	
+				this.#setContainerCss(parentWrapper);
+				res();
+			}
+			catch(err){
+				console.log(err);
+				rej(new Error('Slider not created'));
+			}
+		});
 	}
 
 	#createSliderWrapper() {
@@ -237,7 +258,7 @@ class Slider {
 	/* CREATE SLIDER CONTROL ELEMENTS */
 	
 	#addUI() {
-		this.sliderUI = new SliderUI(this.opts,this.#sliderContainer,this.#sliderWrapper,this.sliderElements);
+		this.sliderUI = new SliderUI(this.opts,this.#sliderContainer,this.sliderWrapper,this.sliderElements);
 		this.opts.controls.events && this.#addUIEvents();
 	}
 
@@ -245,7 +266,7 @@ class Slider {
 		this.opts.controls.events && this.opts.controls.arrows && this.#addUIEventsArrow();
 		this.opts.controls.events && this.opts.controls.dots && this.#addUIEventsDots();
 		this.opts.controls.events && this.#addUIEventKeys();
-		this.opts.controls.touch && this.#addUIEventsDrag();
+		this.opts.controls.events && this.#addUIEventsDrag();
 	}
 
 	#addUIEventsArrow() {
@@ -274,53 +295,71 @@ class Slider {
 	}
 
 	#addUIEventsDrag() {
-			this.sliderElements.onmousedown = dragStart;
-			this.sliderElements.addEventListener('touchstart', this.#addUIEventsDragStart);
-			this.sliderElements.addEventListener('touchend', this.#addUIEventsDragEnd);
-			this.sliderElements.addEventListener('touchmove', this.#addUIEventsDragAction);
+		this.transitionTarget = this.#getTransitionTarget();
+		this.sliderWrapper.addEventListener('mousedown', this.addUIEventsDragStart.bind(this));
+		this.sliderWrapper.addEventListener('touchstart', this.addUIEventsDragStart.bind(this));
+		this.sliderWrapper.addEventListener('touchend', this.dragEnd);
+		this.sliderWrapper.addEventListener('touchmove', this.dragAction);
 	}
 
-	#addUIEventsDragStart (e) {
+	addUIEventsDragStart (e) {
+		this.transitionDefault = this.sliderWrapper.style.transitionProperty;
     e = e || window.event;
     e.preventDefault();
-    posInitial = items.offsetLeft;
+		console.log(e);
+    this.posInitial = this.sliderWrapper.offsetLeft;
     
     if (e.type == 'touchstart') {
-      posX1 = e.touches[0].clientX;
+      this.posX1 = e.touches[0].clientX;
     } else {
-      posX1 = e.clientX;
-      document.onmouseup = this.#addUIEventsDragEnd;
-      document.onmousemove = this.#addUIEventsDragAction;
+      this.posX1 = e.clientX;
+			document.addEventListener("mouseup", this.dragEnd);	
+			document.addEventListener("mousemove", this.dragAction);
+
     }
   }
 
-  #addUIEventsDragAction (e) {
+  addUIEventsDragAction (e) {
     e = e || window.event;
     
     if (e.type == 'touchmove') {
-      posX2 = posX1 - e.touches[0].clientX;
-      posX1 = e.touches[0].clientX;
+
+      this.posX2 = this.posX1 - e.touches[0].clientX;
+      this.posX1 = e.touches[0].clientX;
     } else {
-      posX2 = posX1 - e.clientX;
-      posX1 = e.clientX;
+      this.posX2 = this.posX1 - e.clientX;
+      this.posX1 = e.clientX;
     }
-    items.style.left = (items.offsetLeft - posX2) + "px";
+    this.sliderWrapper.style.left = (this.sliderWrapper.offsetLeft - this.posX2) + "px";
   }
   
-  #addUIEventsDragEnd (e) {
-    posFinal = items.offsetLeft;
-    if (posFinal - posInitial < -threshold) {
-      shiftSlide(1, 'drag');
-    } else if (posFinal - posInitial > threshold) {
-      shiftSlide(-1, 'drag');
-    } else {
-      items.style.left = (posInitial) + "px";
+  addUIEventsDragEnd (e) {
+		let treshold = this.opts.events.touch.threshold;
+		this.sliderWrapper.style.transitionProperty = this.#getCssTransitionProp('left');
+		this.sliderWrapper.style.left = (this.posInitial) + "px";		
+		this.sliderWrapper.addEventListener('transitionend', (e) => {
+			this.addUIEventsDragEndTransition();
+		});
+    this.posFinal = this.sliderWrapper.offsetLeft;
+    if (this.posFinal - this.posInitial < -treshold) {
+      this.showNextSlides();
+			this.sliderWrapper.style.left = "0px";
+    } else if (this.posFinal - this.posInitial > treshold) {
+      this.showPrevSlides();
+			this.sliderWrapper.style.left = "0px";
     }
-
-    document.onmouseup = null;
-    document.onmousemove = null;
+		document.removeEventListener('mouseup', this.dragEnd);
+		document.removeEventListener("mousemove", this.dragAction);
   }
 
+	addUIEventsDragEndTransition() {
+		this.sliderWrapper.style.transitionProperty = this.transitionDefault;
+		this.sliderWrapper.removeEventListener('transitionend', this.addUIEventsDragEndTransition);
+	}
+
+	#getTransitionTarget() {
+		return this.opts.slidesRowWrap ? this.sliderElements : this.sliderWrapper;
+	}
 	/* SETS AND CHECK INDEXES FOR CURRENT, LAST AND OTHER ELEMENTS */
 
 	#setAllIndexes(start = false, target='right') {
@@ -486,7 +525,7 @@ class Slider {
 	/* SET TRANSITION STYLE PER TYPE */ 
 
 	#setTransitionStyles() {
-		let transitionTarget = this.#sliderWrapper?this.#sliderWrapper:this.#sliderContainer;
+		let transitionTarget = this.sliderWrapper?this.sliderWrapper:this.#sliderContainer;
 		//var transitionFunctionName = String(`setTransitionStyles${this.opts.transition.slice(0,1).toUpperCase()}${this.opts.transition.slice(1)}`);
 		//this[transitionFunctionName](transitionTarget);
 		if (!this.opts.slidesRowWrap) {
@@ -504,7 +543,6 @@ class Slider {
 				break;
 			case 'clip':
 				SliderHelpers.setElClass(transitionTarget,'clip');
-				//this.#setTransitionStylesClip(transitionTarget);
 				break;
 			case 'circle':
 				SliderHelpers.setElClass(transitionTarget,'circle');
@@ -512,11 +550,13 @@ class Slider {
 				break;
 			case 'blur':
 				SliderHelpers.setElClass(transitionTarget,'blur');
-				//this.#setTransitionStylesCircle(transitionTarget);
 				break;		
 			case 'rect':
 				SliderHelpers.setElClass(transitionTarget,'rect');
-				//this.#setTransitionStylesCircle(transitionTarget);
+				break;	
+			case 'clones':
+				SliderHelpers.setElClass(transitionTarget,'clones');
+				this.#setTransitionStylesClones(transitionTarget);
 				break;	
 			default:
 				this.#setTransitionStylesFade();
@@ -538,7 +578,7 @@ class Slider {
 		} else this.#setTranslateForElements();
 	}
 
-	#setTranslateForTarget(transitionTarget=this.#sliderWrapper) {
+	#setTranslateForTarget(transitionTarget=this.sliderWrapper) {
 		transitionTarget.style.transform = `translate3d(-${(100/this.sliderElements.length)*this.curIndex[0]}%,0,0)`;
 	}
 
@@ -601,10 +641,31 @@ class Slider {
 			this.#setTranslateForTarget();
 		}
 	}
+
+	/* CLONES TRANSITION */
+
+	#setTransitionStylesClones(transitionTarget){
+		if (!this.opts.slidesRowWrap) {
+			transitionTarget.style.transitionProperty = this.#getCssTransitionProp('transform');
+			this.#setTranslateForTarget();
+		}
+		this.#setTransitionStylesClonesTranslateY();
+	}
+
+	#setTransitionStylesClonesTranslateY(){
+		console.log(this.curIndex);
+		this.sliderElements.forEach(async (el,ind) => {
+			await SliderHelpers.waitForElement(`.slider-transition-clone`);
+			let translateY = `${-100*Math.floor(ind/this.opts.slidesPerRow)}%`;
+			SliderHelpers.setElStyle(el,'transform',`translateY(${translateY})`);
+		})
+	}
 }
 
+/* TEST DATA */
+
 const defaultOptions = {
-	delay: 50,
+	delay: 5000,
 	controls: {
 		arrows: true,
 		dots: true,
@@ -615,9 +676,10 @@ const defaultOptions = {
 	loop: true,
 	margin: 0,
 	sliderClass: 'slider',
-	slidesPerRow: 1,
+	slidesPerRow: 2,
 	slidesRowWrap: true,
-	transition: 'rect',
+	transition: 'clones',
+	transitionSegments: 5,
 	transitionTiming: 'ease-in-out',
 	type:'slider', 
 	vignette: true,
