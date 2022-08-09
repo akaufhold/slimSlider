@@ -105,6 +105,9 @@ export default class SliderElement {
 
 	async #createEEClones(){
 		let clonedElements = await SliderHelpers.createClones(this.elementnode,'rect',this.opts);
+		let index = Math.floor(this.#index/this.opts.slidesPerRow);
+		let translateYWrapper = `${-100*index}%`;
+		//SliderHelpers.setElStyle(this.elementWrapper,'transform',`translateY(${translateYWrapper})`);
 		this.elementWrapper.insertAdjacentElement('beforeend',clonedElements);
 	}
 }
