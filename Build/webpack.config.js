@@ -113,7 +113,7 @@ Encore
       path: "Fonts/"
     }))*/
 
-    .addPlugin(new FileManagerPlugin({
+    /*.addPlugin(new FileManagerPlugin({
       events: {
         onEnd: {
           copy: [{
@@ -131,7 +131,7 @@ Encore
           quality:  30
         }
       }],
-    }))
+    }))*/
 
     .addPlugin(plugins.StyleLintPlugin)
 ;
