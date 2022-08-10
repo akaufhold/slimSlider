@@ -176,7 +176,11 @@
     }
   }
 
-  &.clones {
+  &.slices {
+    .slider-image {
+      opacity: 0;
+    }
+
     .slider-image-overlay {
       transition-delay: 1s;
       z-index: 10;
@@ -206,7 +210,8 @@
 
     .cur-element {
       .slider-image {
-        display: none;
+        opacity: 1;
+        transition-delay: var(--transition-delay);
       }
 
       .slider-image-overlay {
@@ -216,6 +221,82 @@
 
       .slider-transition-overlay {
         .slider-transition-clone {
+          .slider-transition-clone-img {
+            transform: translateY(0%);
+          }
+        }
+      }
+    }
+  }
+
+  &.tiles {
+    .slider-image {
+      display: none;
+    }
+
+    .slider-image-overlay {
+      transition-delay: 1s;
+      z-index: 10;
+      opacity: 0;
+    }
+
+    .slider-transition-overlay {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+
+      .slider-transition-clone {
+        opacity: 0;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        border-radius: 20px;
+        filter: saturate(0);
+
+        .slider-transition-clone-img {
+          position: absolute;
+          left: 0;
+          top: 0;
+          object-fit: cover;
+          object-position: center;
+          transition-timing-function: ease-out;
+          max-width: unset;
+        }
+      }
+    }
+
+    .prev-element {
+      .slider-image {
+        display: block;
+      }
+
+      .slider-transition-overlay {
+        .slider-transition-clone {
+          transform: translate3d(0, 0, 0) !important;
+          transition-duration: 0 !important;
+        }
+      }
+    }
+
+    .cur-element {
+      .slider-image {
+        display: none;
+        transition-delay: var(--transition-delay);
+      }
+
+      .slider-image-overlay {
+        z-index: 51;
+        opacity: 1;
+      }
+
+      .slider-transition-overlay {
+        .slider-transition-clone {
+          border-radius: 0;
+          opacity: 1;
+          transition-delay: .5s;
+          transform: rotateX(0) translate3d(0, 0, 0) !important;
+          filter: saturate(1);
+
           .slider-transition-clone-img {
             transform: translateY(0%);
           }
