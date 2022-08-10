@@ -8,6 +8,7 @@ import SliderHelpers from './slimSlider.helpers';
 import SliderWrapper from './slimSlider.wrapper';
 import SliderElement from './slimSlider.element';
 import SliderUI from './slimSlider.ui';
+import SliderLoader from "./slimSlider.loader";
 
 class Slider {
 	/* DOM ELEMENTS */
@@ -119,7 +120,9 @@ class Slider {
 	async init() {
 		try{
 			this.#setAllIndexes(true);
-			this.imgsLoaded 		 		= await this.#loadAllImages(this.opts);
+			//console.log(new SliderLoader(this.images).imgsLoaded.then());
+			let sliderLoader	= await new SliderLoader(this.images);
+			this.imgsLoaded = sliderLoader.imgLoaded;
 		}
 		catch(err){
 			console.error(err);
@@ -132,50 +135,10 @@ class Slider {
 		}
 	}
 
-	/* LAZYLOADING IMAGES */
+	/* LOADING AND DELETING IMAGES FROM DOM */
 
 	#loadImagesFromDom() {
 		return document.querySelectorAll(`.${this.opts.sliderClass}`)[0].children;
-	}
-
-	async #loadAllImages() {
-		try{
-			if (!this.imgsLoaded) {
-				/*typeof this.images=='object' && this.images.map(el => Object.assign(el.getAttribute('src')));*/
-				//console.log(await Promise.all(this.images.map(async image => this.#loadSingleImage(image))));
-				return await Promise.all(this.images.map(async image => this.#loadSingleImage(image)));
-
-			}	else {
-				console.log(this.imgsLoaded);
-				return Promise.resolve();
-			}
-		}catch(error) {
-			new Error(`Image loading failed `); 
-		}
-	};
-
-	async #loadSingleImage(path) {
-		try {
-			return await this.#createImage(path);
-		}
-		catch(err){
-			console.error(err)
-		}
-	};
-
-	async #createImage(path) {
-		return new Promise(function(res,rej) {
-			let image;
-			if (typeof path==='string') {
-				image = document.createElement('img');
-				image.src = path;
-			} else {
-				image = Object.assign(path);
-			}
-			image.addEventListener('load', () => res(image), false);
-			image.addEventListener('error', () => rej(new Error(`Failed to load img > ${image.src}`)), false);
-			image.dispatchEvent(new Event('load'));
-		});
 	}
 
 	async #deleteImages() {
@@ -288,7 +251,7 @@ class Slider {
 			e.key==='ArrowRight' && this.showNextSlides();
 		}.bind(this))
 		this.sliderUI.arrowContainer.sliderButtonLeft.addEventListener('keyup', (e) => (e.keyCode === 13) && this.showPrevSlides());
-		this.sliderUI.arrowContainer.sliderButtonRight.addEventListener('keyup', (e) => (e.keyCode === 13) &&  this.showNextSlides());
+		this.sliderUI.arrowContainer.sliderButtonRight.addEventListener('keyup', (e) => (e.keyCode === 13) && this.showNextSlides());
 		this.sliderUI.dotContainer.addEventListener('keyup', function(e){
 			const {slide} = e.target.dataset;
 			Number.isInteger(parseInt(slide)) && (e.keyCode === 13) && this.showSlides(Number(slide));
