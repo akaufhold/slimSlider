@@ -1,5 +1,7 @@
 'use strict';
 
+import GLTransitions from "gl-transitions";
+
 import '../Scss/slimSlider.scss';
 
 import SliderHelpers from './slimSlider.helpers';
@@ -28,10 +30,13 @@ class Slider {
 	/* TOUCH EVENT POSITIONS */
 	posX1 = 0;
 	posX2 = 0;
+	posY1 = 0;
+	posY2 = 0;
   posInitial;
 	posFinal;
 	dragEnd;
 	dragAction;
+	dragAxis = 'X';
 	transitionTarget;
 	transitionDefault; 
 
@@ -73,9 +78,9 @@ class Slider {
 		colorTheme:'red',
 		headerTag: 'h3',
 		transition: 'rect', /* fade, slide or rotate */
-		transitionTiming: 'linear',
-		transitionSegments: 15,
-		transitionDuration: 1500,
+		transitionTiming: 'ease-out',
+		transitionSegments: 10,
+		transitionDuration: 1200,
 		type: 'slider', /* slider or gallery */
 		vignette: false,
 		zoomOnHover: true
@@ -89,7 +94,7 @@ class Slider {
 		circle: 'stroke-width',
 		blur: 'transform',
 		rect: 'stroke-width',
-		clones: 'transform'
+		slices: 'transform'
 	}
 
 	constructor(
@@ -231,10 +236,6 @@ class Slider {
 		}
 	}
 
-	#setCssTransitionTiming(el,prop) {
-		el.style.transitionTiming = `${prop}`;
-	}
-
 	#setContainerCssGrid(el) {
 		SliderHelpers.setElStyle(el,'display','grid');
 		SliderHelpers.setElStyle(el,'justifyContent','center');
@@ -306,7 +307,7 @@ class Slider {
 		this.transitionDefault = this.sliderWrapper.style.transitionProperty;
     e = e || window.event;
     e.preventDefault();
-		console.log(e);
+
     this.posInitial = this.sliderWrapper.offsetLeft;
     
     if (e.type == 'touchstart') {
@@ -321,9 +322,8 @@ class Slider {
 
   addUIEventsDragAction (e) {
     e = e || window.event;
-    
+    console.log(this['posX2'], this.posX2);
     if (e.type == 'touchmove') {
-
       this.posX2 = this.posX1 - e.touches[0].clientX;
       this.posX1 = e.touches[0].clientX;
     } else {
@@ -532,31 +532,28 @@ class Slider {
 			transitionTarget.style.transitionProperty = this.#getCssTransitionProp('transform');
 			this.#setTranslateForTarget(transitionTarget);
 		}
+		SliderHelpers.setElClass(transitionTarget,this.opts.transition);
 		switch (this.opts.transition) {
 			case 'fade':
-				SliderHelpers.setElClass(transitionTarget,'fade');
 				//this.#setTransitionStylesFade(transitionTarget);
 				break;
 			case 'slide':
-				SliderHelpers.setElClass(transitionTarget,'slide');
 				this.#setTransitionStylesTranslate(transitionTarget);
 				break;
 			case 'clip':
-				SliderHelpers.setElClass(transitionTarget,'clip');
 				break;
 			case 'circle':
-				SliderHelpers.setElClass(transitionTarget,'circle');
 				this.#setTransitionStylesCircle(transitionTarget);
 				break;
 			case 'blur':
-				SliderHelpers.setElClass(transitionTarget,'blur');
 				break;		
 			case 'rect':
-				SliderHelpers.setElClass(transitionTarget,'rect');
 				break;	
-			case 'clones':
-				SliderHelpers.setElClass(transitionTarget,'clones');
-				this.#setTransitionStylesClones(transitionTarget);
+			case 'slices':
+				this.#setTransitionStylesSlices(transitionTarget);
+				break;	
+			case 'tiles':
+				this.#setTransitionStylesTiles(transitionTarget);
 				break;	
 			default:
 				this.#setTransitionStylesFade();
@@ -585,7 +582,7 @@ class Slider {
 	#setTranslateForElements() {
 		this.sliderElements.forEach((el,ind) => {
 			el.style.transitionProperty = this.#getCssTransitionProp();
-			this.#setCssTransitionTiming(el,this.opts.transitionTiming);
+			Sliderhelpers.setCssTransitionTiming(el,this.opts.transitionTiming);
 			let translateX = this.#setTranslateXForElements(ind, this.opts.slidesRowWrap);
 			let translateY = this.#setTranslateYForElements(ind, this.opts.slidesRowWrap);
 			this.#setStyleForElements([ind],'transform',`translate3d(${translateX},${translateY},0)`);
@@ -627,12 +624,6 @@ class Slider {
 		});
 	}
 
-	/* CLIP TRANSITION */
-
-	#setTransitionStylesClip(transitionTarget){
-
-	}
-
 	/* CIRCLE TRANSITION */
 
 	#setTransitionStylesCircle(transitionTarget){
@@ -642,23 +633,36 @@ class Slider {
 		}
 	}
 
-	/* CLONES TRANSITION */
+	/* SLICES TRANSITION */
 
-	#setTransitionStylesClones(transitionTarget){
+	#setTransitionStylesSlices(transitionTarget){
 		if (!this.opts.slidesRowWrap) {
 			transitionTarget.style.transitionProperty = this.#getCssTransitionProp('transform');
 			this.#setTranslateForTarget();
 		}
-		this.#setTransitionStylesClonesTranslateY();
+		this.#setTransitionStylesSlicesTranslateY();
 	}
 
-	#setTransitionStylesClonesTranslateY(){
-		console.log(this.curIndex);
+	#setTransitionStylesSlicesTranslateY(){
 		this.sliderElements.forEach(async (el,ind) => {
+			let translateYCloneIndex = Math.floor((ind-this.curIndex[0])/this.opts.slidesPerRow);
+			let translateYClone = `${100*translateYCloneIndex}%`;
 			await SliderHelpers.waitForElement(`.slider-transition-clone`);
-			let translateY = `${-100*Math.floor(ind/this.opts.slidesPerRow)}%`;
-			SliderHelpers.setElStyle(el,'transform',`translateY(${translateY})`);
+			el.querySelectorAll(`.slider-transition-clone`).forEach(clone => {
+				clone.style.transitionProperty = this.#getCssTransitionProp();
+				SliderHelpers.setElStyle(clone,'transform',`translateY(${translateYClone})`);
+			})
 		})
+	}
+
+/* TILES TRANSITION */
+
+	#setTransitionStylesTiles(transitionTarget){
+		if (!this.opts.slidesRowWrap) {
+			transitionTarget.style.transitionProperty = this.#getCssTransitionProp('transform');
+			this.#setTranslateForTarget();
+		}
+		//this.#setTransitionStylesSlicesTranslateY();
 	}
 }
 
@@ -676,11 +680,11 @@ const defaultOptions = {
 	loop: true,
 	margin: 0,
 	sliderClass: 'slider',
-	slidesPerRow: 2,
+	slidesPerRow: 1,
 	slidesRowWrap: true,
-	transition: 'clones',
+	transition: 'circle',
 	transitionSegments: 5,
-	transitionTiming: 'ease-in-out',
+	transitionTiming: 'ease-out',
 	type:'slider', 
 	vignette: true,
 	zoomOnHover: false

@@ -91,7 +91,8 @@ export default class SliderElement {
 	#createExtraElements(transition) {
 		transition==='circle' && this.#createEECirle();
 		transition==='rect' && this.#createEERect();
-		transition==='clones' && this.#createEEClones();
+		transition==='slices' && this.#createEEClones(transition);
+		transition==='tiles' && this.#createEEClones(transition);
 		((transition==='circle') || (transition==='rect')) && this.#sliderContainer.style.setProperty('--stroke-width', `${100/this.opts.transitionSegments*2}%`);
 	}
 
@@ -103,11 +104,12 @@ export default class SliderElement {
 		this.elementWrapper.insertAdjacentElement('beforeend',SliderHelpers.createSvg('rect','center',this.opts.transitionSegments));
 	}
 
-	async #createEEClones(){
-		let clonedElements = await SliderHelpers.createClones(this.elementnode,'rect',this.opts);
-		let index = Math.floor(this.#index/this.opts.slidesPerRow);
-		let translateYWrapper = `${-100*index}%`;
+	async #createEEClones(transition){
+		let clonedElements = await SliderHelpers.createClones(this.elementnode,transition,this.opts);
+		// let index = Math.floor(this.#index/this.opts.slidesPerRow);
+		// let translateYWrapper = `${-100*index}%`;
 		//SliderHelpers.setElStyle(this.elementWrapper,'transform',`translateY(${translateYWrapper})`);
+		this.elementWrapper.style.setProperty('--transition-delay',`${this.opts.transitionDuration/1000}s`);
 		this.elementWrapper.insertAdjacentElement('beforeend',clonedElements);
 	}
 }

@@ -28,6 +28,11 @@ export default class SliderHelpers {
 		el.classList.add(cssClass);
 	}
 
+	static setCssTransitionTiming(el,prop) {
+		console.log(`${prop}`)
+		this.setElStyle(el,'transitionTimingFunction',`${prop}`);
+	}
+
 	static wrapAround(el, wrapper) {
 		(el.length > 1 && el.nodeType !== 3) ? el.forEach(el => wrapper.appendChild(el)) : wrapper.appendChild(el);
 		return wrapper;
@@ -106,31 +111,43 @@ export default class SliderHelpers {
 		return svg;
 	}
 
+	static async #getLoadedElement(element) {
+		return new Promise(function (resolve, reject) {
+			element.addEventListener('load',resolve);
+			element.addEventListener('error', () => reject(new Error(`Failed to load img > ${image.src}`)), false);
+			element.dispatchEvent(new Event('load'));
+		});
+	}
+
+
 	static async createClones(originalImg, cloneType, options) {
 		let cloneWrapper = document.createElement('div');
 		cloneWrapper.classList.add('slider-transition-overlay');
-		cloneType === 'rect' && (cloneWrapper = this.#createCloneRects(originalImg,cloneWrapper,options));
+		cloneType === 'slices' && (cloneWrapper = this.#createCloneSlices(originalImg,cloneWrapper,options,cloneType));
+		cloneType === 'tiles' && (cloneWrapper = this.#createCloneTiles(originalImg,cloneWrapper,options,cloneType));
 		return cloneWrapper;
 	}
 
-	static async #createCloneRects(originalImg, cloneWrapper, options) {
+	static async #createCloneSlices(originalImg, cloneWrapper, options, cloneType) {
 		let translateY = `${100*(Math.floor(options.index/options.slidesPerRow))}%`;
 		let loadedImg = await this.#getLoadedElement(originalImg);
 		for (var i = 0; i < options.transitionSegments; i++) {
 			let clone = document.createElement('div');
+			let transitionDuration = `${(options.transitionDuration-((options.transitionDuration/(options.transitionSegments*2))*i))/1000}s`;
+			//clone.style.transitionDelay = clone.style.animationDelay = `${i/1000*(options.transitionDuration/options.transitionSegments)}s`;
 			this.setElClass(clone,`slider-transition-clone`);
+			this.setElStyle(clone,'transitionDuration',transitionDuration);
 			this.setElStyle(clone,'transform',`translateY(${translateY})`);
 			this.setElStyle(clone,'width',`${100/options.transitionSegments}%`);
-			clone.appendChild(this.#createCloneRectsImages(originalImg, loadedImg, i, options));
+			this.setCssTransitionTiming(clone,options.transitionTiming);
+			clone.appendChild(this.#createCloneSliceImage(originalImg, loadedImg, i, cloneType));
 			cloneWrapper.appendChild(clone);
 		}
 		return cloneWrapper;
 	}
 
-	static #createCloneRectsImages(originalImg, loadedImg, i, options){
+	static #createCloneSliceImage(originalImg, loadedImg, i, cloneType){
 		let clonedImg = document.createElement('img');
-		clonedImg.style.transitionDelay = clonedImg.style.animationDelay = `${i/1000*(options.transitionDuration/options.transitionSegments)}s`;
-		clonedImg.style.transitionDuration = `${0.3+i/1000*(options.transitionDuration/options.transitionSegments)}s`;
 		clonedImg.src = originalImg.src;
 		clonedImg.width = loadedImg.target.clientWidth;
 		clonedImg.height = loadedImg.target.clientHeight;
@@ -140,11 +157,37 @@ export default class SliderHelpers {
 		return clonedImg;
 	}
 
-	static async #getLoadedElement(element) {
-		return new Promise(function (resolve, reject) {
-			element.addEventListener('load',resolve);
-			element.addEventListener('error', () => reject(new Error(`Failed to load img > ${image.src}`)), false);
-			element.dispatchEvent(new Event('load'));
-		});
+	static async #createCloneTiles(originalImg, cloneWrapper, options, cloneType) {
+		let loadedImg = await this.#getLoadedElement(originalImg);
+		for (let y = 0; y < options.transitionSegments; y++) {
+			for (let x = 0; x < options.transitionSegments; x++) {
+				let translateX = `${50*(x-(options.transitionSegments/2))}%`;
+				let translateY = `${50*(y-(options.transitionSegments/2))}%`;
+				let clone = document.createElement('div');
+				let transitionDuration = `${(options.transitionDuration-((options.transitionDuration/options.transitionSegments)*x))/1000}s`;
+				clone.style.transitionDelay = clone.style.animationDelay = `${(x+y/(options.transitionSegments*2-x))*options.transitionSegments/options.transitionSegments/1000*(options.transitionDuration/options.transitionSegments)}s`;
+				this.setElClass(clone,`slider-transition-clone`);
+				this.setElStyle(clone,'transitionDuration',transitionDuration);
+				this.setElStyle(clone,'transform',`translate3d(${translateX},${translateY},0)`);
+				this.setElStyle(clone,'width',`${100/options.transitionSegments}%`);
+				this.setElStyle(clone,'height',`${100/options.transitionSegments}%`)
+				this.setCssTransitionTiming(clone,options.transitionTiming);
+				clone.appendChild(this.#createCloneTilesImage(originalImg,loadedImg,x,y,cloneType));
+				console.log(clone);
+				cloneWrapper.appendChild(clone);
+			}
+		}
+		return cloneWrapper;
 	}
+
+	static #createCloneTilesImage(originalImg,loadedImg,x,y,cloneType) {
+		let clonedImg = document.createElement('img');
+		clonedImg.src = originalImg.src;
+		clonedImg.width = loadedImg.target.clientWidth;
+		clonedImg.height = loadedImg.target.clientHeight;
+		clonedImg.style.left = `${x*-100}%`;
+		clonedImg.style.top = `${y*-100}%`;
+		this.setElClass(clonedImg,`slider-transition-clone-img`);
+		return clonedImg;
+	};
 }
