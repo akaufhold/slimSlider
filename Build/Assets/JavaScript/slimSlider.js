@@ -9,8 +9,9 @@ import SliderWrapper from './slimSlider.wrapper';
 import SliderElement from './slimSlider.element';
 import SliderUI from './slimSlider.ui';
 import SliderLoader from "./slimSlider.loader";
+//import SliderTest from "./slimSlider.test";
 
-class Slider {
+export default class Slider {
 	/* DOM ELEMENTS */
 	#sliderContainer;
 	sliderWrapper = false;
@@ -92,10 +93,13 @@ class Slider {
 		slide: 'transform',
 		rotate: 'transform',
 		clip: 'clip',
-		circle: 'stroke-width',
 		blur: 'transform',
+		circle: 'stroke-width',
 		rect: 'stroke-width',
-		slices: 'transform'
+		slices: 'transform',
+		tiles: 'transform',
+		'tiles-rotate': 'transform',
+		shutter: 'transform',
 	}
 
 	constructor(
@@ -497,27 +501,21 @@ class Slider {
 		}
 		SliderHelpers.setElClass(transitionTarget,this.opts.transition);
 		switch (this.opts.transition) {
-			case 'fade':
-				//this.#setTransitionStylesFade(transitionTarget);
-				break;
 			case 'slide':
 				this.#setTransitionStylesTranslate(transitionTarget);
-				break;
-			case 'clip':
 				break;
 			case 'circle':
 				this.#setTransitionStylesCircle(transitionTarget);
 				break;
-			case 'blur':
-				break;		
-			case 'rect':
-				break;	
 			case 'slices':
 				this.#setTransitionStylesSlices(transitionTarget);
 				break;	
 			case 'tiles':
 				this.#setTransitionStylesTiles(transitionTarget);
-				break;	
+				break;
+			case 'tilesRotate':
+				this.#setTransitionStylesTiles(transitionTarget);
+				break;
 			default:
 				this.#setTransitionStylesFade();
 				break;
@@ -645,8 +643,8 @@ const defaultOptions = {
 	sliderClass: 'slider',
 	slidesPerRow: 1,
 	slidesRowWrap: true,
-	transition: 'circle',
-	transitionSegments: 5,
+	transition: 'tiles',
+	transitionSegments: 10,
 	transitionTiming: 'ease-out',
 	type:'slider', 
 	vignette: true,
@@ -658,4 +656,3 @@ document.querySelectorAll(`.${defaultOptions.sliderClass}`).forEach(sliderElemen
 		/*,'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-4.jpg','Public/Images/img-5.jpg','Public/Images/img-6.jpg'*/
 	);
 });
-
