@@ -9,7 +9,6 @@ import SliderWrapper from './slimSlider.wrapper';
 import SliderElement from './slimSlider.element';
 import SliderUI from './slimSlider.ui';
 import SliderLoader from "./slimSlider.loader";
-//import SliderTest from "./slimSlider.test";
 
 export default class Slider {
 	/* DOM ELEMENTS */
