@@ -75,7 +75,7 @@ export default class SliderUI {
 	#addUIArrows() {
 		this.arrowContainer = {}
 		this.arrowContainer.wrapper = document.createElement('div');
-		this.arrowContainer.wrapper.classList.add(this.#controlCssClasses.container.arrowContainer.name);
+		SliderHelpers.setElClass(this.arrowContainer.wrapper,this.#controlCssClasses.container.arrowContainer.name);
 		this.arrowContainer.sliderButtonLeft = this.#addUIArrowsSingle('left');
 		this.arrowContainer.sliderButtonRight = this.#addUIArrowsSingle('right');
 		this.controlContainer.appendChild(this.arrowContainer.wrapper);
