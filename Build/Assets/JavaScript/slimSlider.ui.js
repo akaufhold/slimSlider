@@ -51,7 +51,7 @@ export default class SliderUI {
 		this.#opts.controls.arrows && this.#addUIArrows();
 		this.#opts.controls.dots && this.#addUIDots();
 		this.#sliderContainer.appendChild(this.controlContainer);
-		this.#opts.controls.dots && this.setActiveDot(this.#opts.controls.dotsCount==='fitRows'?[0]:[...Array(this.#opts.slidesPerRow).keys()]); 
+		this.#opts.controls.dots && this.setActiveDot(this.#opts.controls.dotsCount==='fitRows'?[0]:[...Array(this.#opts.slidesShow).keys()]); 
 	}
 
 	#addUIDots() {
@@ -67,7 +67,7 @@ export default class SliderUI {
 
 	#addUIDotsArray(controlArray) {
 		return controlArray.filter((_,index) => {
-			let controlIndex = (index+1) * this.#opts.slidesPerRow;
+			let controlIndex = (index+1) * this.#opts.slidesShow;
 			return this.#sliderElements[controlIndex-1]!==undefined;
 		})
 	}
@@ -100,7 +100,7 @@ export default class SliderUI {
 	setActiveDot(slide) {
 		this.resetDots();
 		if (this.#opts.controls.dotsCount==='fitRows') {
-			slide = slide.filter(el => el%this.#opts.slidesPerRow===0).map(el => el/this.#opts.slidesPerRow);
+			slide = slide.filter(el => el%this.#opts.slidesShow===0).map(el => el/this.#opts.slidesShow);
 		}
 		slide.forEach(el => {
 			document.querySelector(`.${this.#controlCssClasses.container.dotContainer.dot.name}[data-slide="${el}"]`).classList.add('dot-active');

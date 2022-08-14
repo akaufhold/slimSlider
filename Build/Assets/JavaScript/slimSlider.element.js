@@ -58,9 +58,9 @@ export default class SliderElement {
 	}
 
 	#setElementStyles(el) {
-		let curColumn = this.opts.slidesRowWrap ? (this.#index+1)%this.opts.slidesPerRow : (this.#index+1);
+		let curColumn = this.opts.slidesRowWrap ? (this.#index+1)%this.opts.slidesShow : (this.#index+1);
 		SliderHelpers.setElStyle(el,'gridRowStart',1);
-		(curColumn === 0) ? SliderHelpers.setElStyle(el,'gridColumnStart',this.opts.slidesPerRow) : SliderHelpers.setElStyle(el,'gridColumnStart',curColumn);
+		(curColumn === 0) ? SliderHelpers.setElStyle(el,'gridColumnStart',this.opts.slidesShow) : SliderHelpers.setElStyle(el,'gridColumnStart',curColumn);
 	}
 
 	#setElementClasses() {
@@ -73,7 +73,7 @@ export default class SliderElement {
 		let {head,text,link} = this.elementnode.dataset;
 		let headerWrap, textWrap, linkWrap, elementWrapper = SliderHelpers.createWrapperElement('slider-image-overlay','div');
 		elementWrapper.classList.add(`overlay-style-${this.opts.elementOverlayStyle}`);
-		elementWrapper.style.fontSize = `${11-this.opts.slidesPerRow}px`;
+		elementWrapper.style.fontSize = `${11-this.opts.slidesShow}px`;
 		head && (headerWrap = this.#createElementContent(head,'header',this.opts.headerTag)) && (elementWrapper = SliderHelpers.wrapAround(headerWrap,elementWrapper));
 		text && (textWrap = this.#createElementContent(text,'description','p')) && (elementWrapper = SliderHelpers.wrapAround(textWrap,elementWrapper));
 		link && (linkWrap = this.#createElementContent('mehr','link','a')) && (elementWrapper =  SliderHelpers.wrapAround(linkWrap,elementWrapper));

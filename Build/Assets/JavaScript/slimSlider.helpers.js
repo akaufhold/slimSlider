@@ -43,14 +43,14 @@ export default class SliderHelpers {
 		else return false;
 	}
 
-	static isFirst(value, slidesPerRow){
-		if ((value+1)%slidesPerRow === 1)
+	static isFirst(value, slidesShow){
+		if ((value+1)%slidesShow === 1)
 			return true;
 		else return false;
 	}
 
-	static isLast(value, slidesPerRow){
-		if ((value+1)%slidesPerRow === 0)
+	static isLast(value, slidesShow){
+		if ((value+1)%slidesShow === 0)
 			return true;
 		else return false;
 	}
@@ -130,7 +130,7 @@ export default class SliderHelpers {
 	}
 
 	static async #createCloneSlices(originalImg, cloneWrapper, options, cloneType) {
-		let translateY = `${100*(Math.floor(options.index/options.slidesPerRow))}%`;
+		let translateY = `${100*(Math.floor(options.index/options.slidesShow))}%`;
 		let loadedImg = await this.#getLoadedElement(originalImg);
 		for (var i = 0; i < options.transitionSegments; i++) {
 			let clone = document.createElement('div');
@@ -159,7 +159,6 @@ export default class SliderHelpers {
 		clonedImg.height = loadedImg.target.clientHeight;
 		clonedImg.style.left = `${i*-100}%`;
 		clonedImg.id = `slider-transition-clone-img${i}`;
-		console.log(cloneType);
 		(cloneType=='shutter') && this.setElStyle(clonedImg,'transform',`translate3d('-10%',0,0)`);
 		this.setElClass(clonedImg,`slider-transition-clone-img`);
 		return clonedImg;

@@ -28,7 +28,7 @@ export default class SliderWrapper {
 	}
 
 	#setWrapperWidth(){
-		let wrapperWidth = `${(this.elementsToWrap.length/this.#opts.slidesPerRow)*100}%`;
+		let wrapperWidth = `${(this.elementsToWrap.length/this.#opts.slidesShow)*100}%`;
 		this.wrapperDomElement.style.width = wrapperWidth;
 	}
 
