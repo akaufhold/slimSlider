@@ -9,6 +9,7 @@ import SliderWrapper from './slimSlider.wrapper';
 import SliderElement from './slimSlider.element';
 import SliderUI from './slimSlider.ui';
 import SliderLoader from "./slimSlider.loader";
+import SliderResponsive from "./slimSlider.responsive";
 
 export default class Slider {
 	/* DOM ELEMENTS */
@@ -67,7 +68,7 @@ export default class Slider {
 		delay: 6,
 		loop: true, 
 		margin: 0,
-		slidesPerRow: 1,
+		slidesShow: 1,
 		slidesPerColumn: 1,
 		slidesRowWrap: false,
 		sliderClass:"slider",
@@ -124,6 +125,7 @@ export default class Slider {
 		try{
 			this.#setAllIndexes(true);
 			//console.log(new SliderLoader(this.images).imgsLoaded.then());
+			console.log(this.imgsLoaded);
 			let sliderLoader	= await new SliderLoader(this.images);
 			this.imgsLoaded = sliderLoader.imgLoaded;
 		}
@@ -133,7 +135,7 @@ export default class Slider {
 		}
 		finally{
 			this.opts.type === 'slider' && await this.#createSlider();
-			this.opts.controls!== false && (this.opts.slidesPerRow < this.imgCount) && this.#addUI();
+			this.opts.controls!== false && (this.opts.slidesShow < this.imgCount) && this.#addUI();
 			await this.#slideTransition('right');
 		}
 	}
@@ -155,7 +157,7 @@ export default class Slider {
 			try{
 				let parentWrapper = this.#sliderContainer;
 				this.#createSliderElements();
-				//if ((this.opts.slidesPerRow > 1) || (!this.opts.slidesRowWrap)){
+				//if ((this.opts.slidesShow > 1) || (!this.opts.slidesRowWrap)){
 					this.sliderWrapper = parentWrapper = this.#createSliderWrapper();	
 				//}
 	
@@ -212,7 +214,7 @@ export default class Slider {
 	#getGridColumnString() {
 		if (this.opts.slidesRowWrap){
 			let gridTemplateColumnsString = '';
-			for (let i=0; i<this.opts.slidesPerRow; i++){
+			for (let i=0; i<this.opts.slidesShow; i++){
 				gridTemplateColumnsString += `1fr `;
 			}
 			return `${gridTemplateColumnsString.slice(0,-1)}`;
@@ -335,7 +337,7 @@ export default class Slider {
 	}
 
 	#setIndexIncrement() {
-		this.incIndex = this.opts.slidesPerRow;
+		this.incIndex = this.opts.slidesShow;
 	}
 
 	#setLastIndexes(start = false) {
@@ -370,7 +372,7 @@ export default class Slider {
 	}
 
 	#setInitialIndex(target) {
-		return this.#getIndexesArrayForProp('slidesPerRow',true, target);
+		return this.#getIndexesArrayForProp('slidesShow',true, target);
 	}
 
 	#setIncrementedIndex(target, value, index, indexOffset) {
@@ -381,7 +383,7 @@ export default class Slider {
 			targetIndex = value - this.incIndex + indexOffset;
 		else {
 			targetIndex = this.opts.controls.dotsCount==='fitRows'?
-				(target*this.opts.slidesPerRow) + index:
+				(target*this.opts.slidesShow) + index:
 				this.#getCurrentIndexForTarget(target) + index + indexOffset;
 		}
 		return targetIndex;
@@ -568,7 +570,7 @@ export default class Slider {
 
 	#setTranslateYForElements(ind, rowWrap) {
 		let translateY = '0%';
-		this.opts.slidesPerRow > 2 && rowWrap && (this.othIndex.includes(ind)) && (translateY = '-100%');
+		this.opts.slidesShow > 2 && rowWrap && (this.othIndex.includes(ind)) && (translateY = '-100%');
 		return translateY;
 	}
 
@@ -605,7 +607,7 @@ export default class Slider {
 
 	#setTransitionStylesSlicesTranslateY(){
 		this.sliderElements.forEach(async (el,ind) => {
-			let translateYCloneIndex = Math.floor((ind-this.curIndex[0])/this.opts.slidesPerRow);
+			let translateYCloneIndex = Math.floor((ind-this.curIndex[0])/this.opts.slidesShow);
 			let translateYClone = `${100*translateYCloneIndex}%`;
 			await SliderHelpers.waitForElement(`.slider-transition-clone`);
 			el.querySelectorAll(`.slider-transition-clone`).forEach(clone => {
@@ -639,19 +641,43 @@ const defaultOptions = {
 	elementType: 'div',
 	loop: true,
 	margin: 0,
+	responsive: [
+    {
+      breakpoint: 1366,
+      options: {
+        slidesShow: 3,
+        slidesToScroll: 3,
+				controls: {
+					dots: false
+				}
+      }
+    },
+    {
+      breakpoint: 1024,
+      options: {
+        slidesShow: 2,
+      }
+    },
+    {
+      breakpoint: 768,
+      options: {
+        slidesShow: 1,
+      }
+    }
+  ],
 	sliderClass: 'slider',
-	slidesPerRow: 1,
+	slidesShow: 1,
 	slidesRowWrap: true,
-	transition: 'tiles',
-	transitionSegments: 10,
+	transition: 'slices',
+	transitionSegments: 8,
 	transitionTiming: 'ease-out',
 	type:'slider', 
 	vignette: true,
 	zoomOnHover: false
 }
 
-document.querySelectorAll(`.${defaultOptions.sliderClass}`).forEach(sliderElement => {
-	const slider1 = new Slider(sliderElement,defaultOptions
-		/*,'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-4.jpg','Public/Images/img-5.jpg','Public/Images/img-6.jpg'*/
-	);
-});
+/*document.querySelectorAll(`.${defaultOptions.sliderClass}`).forEach(sliderElement => {
+	const slider1 = new Slider(sliderElement,defaultOptions,'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-4.jpg','Public/Images/img-5.jpg','Public/Images/img-6.jpg');
+});*/
+
+const slider1 = new SliderResponsive(defaultOptions);
