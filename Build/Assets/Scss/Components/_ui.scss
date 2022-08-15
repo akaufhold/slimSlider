@@ -19,7 +19,7 @@
 
       .slider-ui-dot {
         border-radius: 50%;
-        border: 1px solid var(--white);
+        border: 1px solid var(--ui-back-color);
         background-color: transparent;
         cursor: pointer;
         height: 1rem;
@@ -33,12 +33,12 @@
         }
 
         &:hover {
-          background-color: var(--white-75);
+          background-color: var(--ui-back-color-75);
         }
 
         &.dot-active {
-          border: 1px solid var(--gray);
-          background-color: var(--white);
+          border: 1px solid var(--ui-border-color);
+          background-color: var(--ui-back-color);
           opacity: 1;
         }
 
@@ -51,7 +51,7 @@
     .slider-ui-arrows {
       .slider-ui-arrow {
         position: absolute;
-        background-color: var(--white);
+        background-color: var(--ui-back-color);
         border-radius: 100%;
         top: 50%;
         left: 4%;
