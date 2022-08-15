@@ -107,25 +107,29 @@ export default class Slider {
 		options = {},
 		...images
 	){
-		for (const option of Object.entries(options)){
-			this.options[option[0]] = options[option[0]] || option[1];
-		}
+		this.setOptions(options);
 		this.#sliderContainer 	= sliderContainer;
 		this.opts 		= this.options;
 		this.images 	= images.length ? images : Array.from(this.#loadImagesFromDom());
 		this.imgCount = this.images.length;
 		this.opts.loop && (this.interval = '');
-		this.#setIndexIncrement();
 		this.images.length && this.init();
 		this.dragEnd = this.addUIEventsDragEnd.bind(this);
 		this.dragAction = this.addUIEventsDragAction.bind(this);
 	}
 
+	setOptions(options) {
+		for (const option of Object.entries(options)){
+			this.options[option[0]] = options[option[0]] || option[1];
+		}
+	}
+
 	async init() {
 		try{
+			this.#setIndexIncrement();
 			this.#setAllIndexes(true);
 			//console.log(new SliderLoader(this.images).imgsLoaded.then());
-			console.log(this.imgsLoaded);
+			//console.log(this.opts);
 			let sliderLoader	= await new SliderLoader(this.images);
 			this.imgsLoaded = sliderLoader.imgLoaded;
 		}
@@ -177,7 +181,7 @@ export default class Slider {
 	}
 
 	#createSliderElements() {
-		console.log(this.images,this.#sliderContainer);
+		//console.log(this.images,this.#sliderContainer);
 		this.images.length && this.#deleteImages() && (this.sliderElements=[]);
 		this.imgsLoaded.forEach((el,index) => {
 			let sliderElement = new SliderElement(this.opts,this.#sliderContainer,el,index,this.imgCount);

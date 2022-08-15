@@ -6,15 +6,15 @@ export default class SliderResponsive {
 	#sliderSelector;
 	viewportWidth;
 	#breakpoints;
+	#defaultOptions;
 	#opts;
 
 	constructor(
 		options,
 		sliderCssClass = `.${options.sliderClass}`
 	){
-		for (const option of Object.entries(options)) {
-			this.#opts = options;
-		}
+		this.#opts = Object.assign({}, options);
+		this.#defaultOptions = Object.assign({}, options);
 		this.#sliderCssClass = sliderCssClass;
 		this.#sliderSelector = document.querySelectorAll(sliderCssClass);
 		this.init();
@@ -23,8 +23,9 @@ export default class SliderResponsive {
 	init() {
 		this.#setViewport();
 		this.#getBreakpoints();
-		this.#initSlider();
-		window.addEventListener('resize',this.reInitSlider.bind(this), true);
+		this.#setViewportOptions();
+		this.#initAllSliders();
+		window.addEventListener('resize',this.reinitAllSliders.bind(this), true);
 	}
 
 	#setViewport() {
@@ -44,7 +45,10 @@ export default class SliderResponsive {
 			for (const option of Object.entries(overrideOptions)) {
 				this.#opts[option[0]] = option[1];
 			}
+		} else {
+			this.#opts = Object.assign({}, this.#defaultOptions);
 		}
+		console.log(this.#defaultOptions);
 	}
 
 	#getOverrideOptionsForViewport() {
@@ -60,16 +64,17 @@ export default class SliderResponsive {
 		return viewportOptions;
 	}
 
-	#initSlider() {
+	#initAllSliders() {
 		this.#sliderSelector.forEach(sliderElement => {
 			this.#sliders.push(new Slider(sliderElement,this.#opts));
 		});
 	}
 
-	reInitSlider() {
+	reinitAllSliders() {
 		this.#setViewport();
 		this.#setViewportOptions();
 		this.#sliders.forEach(slider => {
+			slider.setOptions(this.#opts);
 			slider.init();
 		})
 	}
