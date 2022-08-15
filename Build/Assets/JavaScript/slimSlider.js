@@ -77,7 +77,7 @@ export default class Slider {
 		elementType:'picture',
 		elementClass:'slider-image',
 		elementOverlayStyle:'circle',
-		colorTheme:'red',
+		colorTheme:'navy',
 		headerTag: 'h3',
 		transition: 'rect', /* fade, slide or rotate */
 		transitionTiming: 'ease-out',
@@ -177,7 +177,8 @@ export default class Slider {
 	}
 
 	#createSliderElements() {
-		this.images.length && this.#deleteImages();
+		console.log(this.images,this.#sliderContainer);
+		this.images.length && this.#deleteImages() && (this.sliderElements=[]);
 		this.imgsLoaded.forEach((el,index) => {
 			let sliderElement = new SliderElement(this.opts,this.#sliderContainer,el,index,this.imgCount);
 			this.sliderElements.push(sliderElement.elementIsWrapped ? sliderElement.elementWrapper : sliderElement.elementnode);
@@ -232,10 +233,10 @@ export default class Slider {
 	}
 
 	#addUIEvents() {
-		this.opts.controls.events && this.opts.controls.arrows && this.#addUIEventsArrow();
-		this.opts.controls.events && this.opts.controls.dots && this.#addUIEventsDots();
-		this.opts.controls.events && this.#addUIEventKeys();
-		this.opts.controls.events && this.#addUIEventsDrag();
+		this.opts.controls.arrows && this.#addUIEventsArrow();
+		this.opts.controls.dots && this.#addUIEventsDots();
+		this.#addUIEventKeys();
+		this.#addUIEventsDrag();
 	}
 
 	#addUIEventsArrow() {
@@ -255,9 +256,9 @@ export default class Slider {
 			e.key==='ArrowLeft' && this.showPrevSlides();
 			e.key==='ArrowRight' && this.showNextSlides();
 		}.bind(this))
-		this.sliderUI.arrowContainer.sliderButtonLeft.addEventListener('keyup', (e) => (e.keyCode === 13) && this.showPrevSlides());
-		this.sliderUI.arrowContainer.sliderButtonRight.addEventListener('keyup', (e) => (e.keyCode === 13) && this.showNextSlides());
-		this.sliderUI.dotContainer.addEventListener('keyup', function(e){
+		this.opts.controls.arrows && this.sliderUI.arrowContainer.sliderButtonLeft.addEventListener('keyup', (e) => (e.keyCode === 13) && this.showPrevSlides());
+		this.opts.controls.arrows && this.sliderUI.arrowContainer.sliderButtonRight.addEventListener('keyup', (e) => (e.keyCode === 13) && this.showNextSlides());
+		this.opts.controls.dots && this.sliderUI.dotContainer.addEventListener('keyup', function(e){
 			const {slide} = e.target.dataset;
 			Number.isInteger(parseInt(slide)) && (e.keyCode === 13) && this.showSlides(Number(slide));
 		}.bind(this), false);
@@ -290,7 +291,7 @@ export default class Slider {
 
   addUIEventsDragAction (e) {
     e = e || window.event;
-    console.log(this['posX2'], this.posX2);
+    //console.log(this['posX2'], this.posX2);
     if (e.type == 'touchmove') {
       this.posX2 = this.posX1 - e.touches[0].clientX;
       this.posX1 = e.touches[0].clientX;
@@ -633,8 +634,8 @@ export default class Slider {
 const defaultOptions = {
 	delay: 5000,
 	controls: {
-		arrows: true,
-		dots: true,
+		arrows: false,
+		dots: false,
 		dotsCount: 'fitRows', /* fitRows or all/empty */
 		events: true
 	},
@@ -645,7 +646,7 @@ const defaultOptions = {
     {
       breakpoint: 1366,
       options: {
-        slidesShow: 3,
+        slidesShow: 2,
         slidesToScroll: 3,
 				controls: {
 					dots: false
@@ -666,7 +667,7 @@ const defaultOptions = {
     }
   ],
 	sliderClass: 'slider',
-	slidesShow: 1,
+	slidesShow: 3,
 	slidesRowWrap: true,
 	transition: 'slices',
 	transitionSegments: 8,
