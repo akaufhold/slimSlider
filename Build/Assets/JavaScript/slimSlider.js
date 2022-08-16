@@ -1,6 +1,6 @@
 'use strict';
 
-import GLTransitions from "gl-transitions";
+//import GLTransitions from "gl-transitions";
 
 import '../Scss/slimSlider.scss';
 
@@ -53,8 +53,10 @@ export default class Slider {
 	opts;
 	options = {
 		autoplay: true,
+		colorTheme:'navy',
 		controls: {
 			arrows: true,
+			direction: 'horizontal',
 			dots: true,
 			keys: true,
 			dotsCount: 'fitRows', /* fitRows or all/empty */
@@ -66,19 +68,19 @@ export default class Slider {
 			}
 		},
 		delay: 6,
+		elementWrapperClass:'slider-image-wrapper',
+		elementType:'picture',
+		elementClass:'slider-image',
+		elementOverlayStyle:'circle',
+		headerTag: 'h3',
 		loop: true, 
 		margin: 0,
+		progressBar: true,
 		slidesShow: 1,
 		slidesPerColumn: 1,
 		slidesRowWrap: false,
 		sliderClass:"slider",
 		sliderWrapperClass: "slider-wrapper",
-		elementWrapperClass:'slider-image-wrapper',
-		elementType:'picture',
-		elementClass:'slider-image',
-		elementOverlayStyle:'circle',
-		colorTheme:'navy',
-		headerTag: 'h3',
 		transition: 'rect', /* fade, slide or rotate */
 		transitionTiming: 'ease-out',
 		transitionSegments: 10,
@@ -111,6 +113,7 @@ export default class Slider {
 		this.#sliderContainer 	= sliderContainer;
 		this.opts 		= this.options;
 		this.images 	= images.length ? images : Array.from(this.#loadImagesFromDom());
+		console.log(this.images);
 		this.imgCount = this.images.length;
 		this.opts.loop && (this.interval = '');
 		this.images.length && this.init();
@@ -119,9 +122,36 @@ export default class Slider {
 	}
 
 	setOptions(options) {
-		for (const option of Object.entries(options)){
-			this.options[option[0]] = options[option[0]] || option[1];
+		this.#mergeDeep(this.options,options);
+		/*for (const [key,option] of Object.entries(options)){
+			if (Array.isArray(option)) {
+				for (const [childKey,childOption] of Object.entries(option)){
+					console.log(key,childKey,childOption,childOption.length);
+					this.options[key][childKey] = childOption[childKey] || childOption;
+				}
+			}
+			else
+				this.options[key] = options[key] || option;
+		}*/
+	}
+
+ 	#mergeDeep(target, source) {
+		const isObject = (obj) => obj && typeof obj === 'object';
+		if (!isObject(target) || !isObject(source)) {
+			return source;
 		}
+		Object.keys(source).forEach(key => {
+			const targetValue = target[key];
+			const sourceValue = source[key];
+			if (Array.isArray(targetValue) && Array.isArray(sourceValue)) {
+				target[key] = targetValue.concat(sourceValue);
+			} else if (isObject(targetValue) && isObject(sourceValue)) {
+				target[key] = this.#mergeDeep(Object.assign({}, targetValue), sourceValue);
+			} else {
+				target[key] = sourceValue;
+			}
+		});
+		return target;
 	}
 
 	async init() {
@@ -255,10 +285,12 @@ export default class Slider {
 		}.bind(this), false);
 	}
 
-	#addUIEventKeys() {	
+	#addUIEventKeys() {
+		let prevKey = (this.opts.controls.direction==='horizontal'?'ArrowLeft':'ArrowUp'); 
+		let nextKey = (this.opts.controls.direction==='horizontal'?'ArrowRight':'ArrowDown'); 
 		document.addEventListener('keydown', function(e) {
-			e.key==='ArrowLeft' && this.showPrevSlides();
-			e.key==='ArrowRight' && this.showNextSlides();
+			e.key===prevKey && this.showPrevSlides();
+			e.key===nextKey && this.showNextSlides();
 		}.bind(this))
 		this.opts.controls.arrows && this.sliderUI.arrowContainer.sliderButtonLeft.addEventListener('keyup', (e) => (e.keyCode === 13) && this.showPrevSlides());
 		this.opts.controls.arrows && this.sliderUI.arrowContainer.sliderButtonRight.addEventListener('keyup', (e) => (e.keyCode === 13) && this.showNextSlides());
@@ -455,6 +487,8 @@ export default class Slider {
 
 	async #slideTransition(start = true, target = 'right') {
 		try{
+			SliderHelpers.rmElClass(this.#sliderContainer,'progress');
+			await SliderHelpers.wait(0.001);
 			let isSelected = this.#checkIndexSelectedAlready(target);
 			if (!start && !isSelected){
 				this.#setAllIndexes(false, target);
@@ -478,6 +512,7 @@ export default class Slider {
 	/* REMOVE AND ADD CUR AND PREV CLASSES / SET CSS STYLING FOR TRANSITIONS  */ 
 
 	async setClassesAndStyles() {
+		SliderHelpers.setElClass(this.#sliderContainer,'progress');
 		this.removeClassesFromElementArr(this.sliderElements);
 		this.addClassToElementArr(this.curIndex,this.curElementClass);
 		this.addClassToElementArr(this.lastIndex,this.prevElementClass);
@@ -622,7 +657,7 @@ export default class Slider {
 		})
 	}
 
-/* TILES TRANSITION */
+	/* TILES TRANSITION */
 
 	#setTransitionStylesTiles(transitionTarget){
 		if (!this.opts.slidesRowWrap) {
@@ -636,10 +671,11 @@ export default class Slider {
 /* TEST DATA */
 
 const defaultOptions = {
-	delay: 5000,
+	delay: 20,
 	controls: {
-		arrows: false,
-		dots: false,
+		arrows: true,
+		direction: 'vertical',
+		dots: true,
 		dotsCount: 'fitRows', /* fitRows or all/empty */
 		events: true
 	},
@@ -671,18 +707,14 @@ const defaultOptions = {
     }
   ],
 	sliderClass: 'slider',
-	slidesShow: 3,
+	slidesShow: 1,
 	slidesRowWrap: true,
-	transition: 'slices',
-	transitionSegments: 8,
+	transition: 'circle',
+	transitionSegments: 10,
 	transitionTiming: 'ease-out',
 	type:'slider', 
 	vignette: true,
 	zoomOnHover: false
 }
-
-/*document.querySelectorAll(`.${defaultOptions.sliderClass}`).forEach(sliderElement => {
-	const slider1 = new Slider(sliderElement,defaultOptions,'Public/Images/img-1.jpg','Public/Images/img-2.jpg','Public/Images/img-3.jpg','Public/Images/img-4.jpg','Public/Images/img-5.jpg','Public/Images/img-6.jpg');
-});*/
 
 const slider1 = new SliderResponsive(defaultOptions);
