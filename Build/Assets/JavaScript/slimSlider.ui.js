@@ -23,6 +23,12 @@ export default class SliderUI {
 				arrow: {
 					name: 'slider-ui-arrow'
 				}
+			},
+			progress: {
+				name: 'progress-wrapper',
+				progressBar: {
+					name: 'progress-bar'
+				}
 			}
 		}
 	};	
@@ -48,28 +54,13 @@ export default class SliderUI {
 	init() {
 		this.controlContainer = document.createElement('div');
 		this.controlContainer.classList.add(this.#controlCssClasses.container.name);
+		console.log(this.#opts);
+		this.#opts.controls.direction && this.controlContainer.classList.add(this.#opts.controls.direction);
 		this.#opts.controls.arrows && this.#addUIArrows();
 		this.#opts.controls.dots && this.#addUIDots();
+		this.#opts.progressBar && this.#addProgressBar();
 		this.#sliderContainer.appendChild(this.controlContainer);
 		this.#opts.controls.dots && this.setActiveDot(this.#opts.controls.dotsCount==='fitRows'?[0]:[...Array(this.#opts.slidesShow).keys()]); 
-	}
-
-	#addUIDots() {
-		let elementsArray = this.#sliderElements;
-		this.dotContainer = document.createElement('div');
-		this.dotContainer.classList.add(this.#controlCssClasses.container.dotContainer.name);
-		(this.#opts.controls.dotsCount === 'fitRows') && (elementsArray = this.#addUIDotsArray(this.#sliderElements.slice()));
-		elementsArray.forEach((_,index) => {
-			this.dotContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.dotContainer.dot.name}" data-slide="${index}" tabindex="${index++}" role="button"></div>`);
-		});
-		this.controlContainer.appendChild(this.dotContainer);
-	}
-
-	#addUIDotsArray(controlArray) {
-		return controlArray.filter((_,index) => {
-			let controlIndex = (index+1) * this.#opts.slidesShow;
-			return this.#sliderElements[controlIndex-1]!==undefined;
-		})
 	}
 
 	#addUIArrows() {
@@ -88,6 +79,28 @@ export default class SliderUI {
 		arrow.setAttribute('tabindex', '0');
 		this.arrowContainer.wrapper.appendChild(arrow);
 		return arrow;
+	}
+
+	#addProgressBar() {
+		this.controlContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.progress.name}"><div class="${this.#controlCssClasses.container.progress.progressBar.name}" style="animation-duration: ${this.#opts.delay}s"></div></div>`);
+	}
+
+	#addUIDots() {
+		let elementsArray = this.#sliderElements;
+		this.dotContainer = document.createElement('div');
+		this.dotContainer.classList.add(this.#controlCssClasses.container.dotContainer.name);
+		(this.#opts.controls.dotsCount === 'fitRows') && (elementsArray = this.#addUIDotsArray(this.#sliderElements.slice()));
+		elementsArray.forEach((_,index) => {
+			this.dotContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.dotContainer.dot.name}" data-slide="${index}" tabindex="${index++}" role="button"></div>`);
+		});
+		this.controlContainer.appendChild(this.dotContainer);
+	}
+
+	#addUIDotsArray(controlArray) {
+		return controlArray.filter((_,index) => {
+			let controlIndex = (index+1) * this.#opts.slidesShow;
+			return this.#sliderElements[controlIndex-1]!==undefined;
+		})
 	}
 
 	resetDots(){
