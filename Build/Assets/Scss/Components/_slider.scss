@@ -22,7 +22,7 @@
     }
 
     .slider-image-wrapper,
-    img {
+    .slider-image {
 
       transform-style: preserve-3d;
       will-change: auto;
@@ -37,8 +37,8 @@
       }
     }
 
-    img {
-      max-width: 100%;
+    .slider-image {
+      width: 100%;
       object-fit: cover;
       overflow: hidden;
       display: grid;

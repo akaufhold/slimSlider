@@ -123,29 +123,77 @@
         }
       }
     }
+
+    .progress-wrapper {
+      inset: auto auto 2px;
+      width: 100%;
+      margin-top: 0;
+      height: 2px;
+      position: absolute;
+      transform: translate(0);
+      z-index: 10;
+
+      .progress-bar {
+        background-color: var(--ui-back-color-75);
+        border-radius: 50%;
+        display: block;
+        z-index: 20;
+        box-sizing: border-box;
+        background-clip: content-box;
+        position: absolute;
+        line-height: 0;
+        width: 100%;
+        height: 100%;
+        transform-origin: 0% 50% 0;
+      }
+    }
+
+    &.vertical {
+      .slider-ui-dots {
+        bottom: auto;
+        left: 1%;
+        flex-direction: column;
+        top: 50%;
+        transform: translateY(-50%);
+
+        .slider-ui-dot {
+          margin-right: 0;
+          margin-bottom: 1.75em;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+      }
+
+      .slider-ui-arrows {
+        .slider-ui-arrow {
+          &::before,
+          &::after {
+            width: .15rem;
+          }
+
+          &.slider-ui-arrow-left {
+            top: 43%;
+            right: 1%;
+            left: auto;
+            bottom: auto;
+            height: 2rem;
+            width: 2rem;
+            transform: rotateZ(90deg) translateY(50%);
+          }
+
+          &.slider-ui-arrow-right {
+            bottom: 48%;
+            right: 1%;
+            left: auto;
+            top: auto;
+            height: 2rem;
+            width: 2rem;
+            transform: rotateZ(90deg) translateY(50%);
+          }
+        }
+      }
+    }
   }
 }
-
-/* .arrow-clipped {
-  background-color: #fff;
-  clip-path:
-    polygon(
-      24.5% 26.5%,
-      62% 26.5%,
-      53% 34%,
-      38% 50%,
-      53% 66%,
-      53% 61%,
-      43% 50%,
-      53% 39%,
-      53% 26.5%,
-      74.5% 26.5%,
-      74.5% 76.5%,
-      24.5% 76.5%);
-  display: flex;
-  position: absolute;
-  height: 100px;
-  top: 10px;
-  width: 100px;
-  z-index: 100;
-} */

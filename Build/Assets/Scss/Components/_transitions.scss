@@ -112,6 +112,12 @@
   &.circle,
   &.rect {
     .slider-image-wrapper {
+      .slider-image {
+        opacity: 0;
+        transition-delay: .5s;
+        transition-duration: .7s;
+      }
+
       .slider-transition-overlay {
         svg {
           width: 100%;
@@ -129,6 +135,10 @@
       }
 
       &.cur-element {
+        .slider-image {
+          opacity: 1;
+        }
+
         .slider-transition-overlay {
           svg {
             circle {
@@ -160,7 +170,7 @@
     }
 
     .slider-transition-overlay {
-      transform: scale(1.2);
+      transform: scale(1.5);
     }
   }
 
@@ -344,4 +354,19 @@
       }
     }
   }
+
+  &.progress {
+    .slider-ui {
+      .progress-wrapper {
+        .progress-bar {
+          animation: progressBar linear;
+        }
+      }
+    }
+  }
+}
+
+@keyframes progressBar {
+  0% { transform: rotateY(90deg); }
+  100% { transform: rotateY(0); }
 }
