@@ -28,6 +28,10 @@ export default class SliderHelpers {
 		el.classList.add(cssClass);
 	}
 
+	static rmElClass(el,cssClass) {
+		el.classList.remove(cssClass);
+	}
+
 	static setCssTransitionTiming(el,prop) {
 		this.setElStyle(el,'transitionTimingFunction',`${prop}`);
 	}

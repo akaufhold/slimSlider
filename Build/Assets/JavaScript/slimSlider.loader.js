@@ -28,7 +28,7 @@ export default class SliderLoader {
 				return Promise.all(this.images.map(async image => await this.#loadSingleImage(image)));
 
 			}	else {
-				console.log(this.imgsLoaded);
+				// console.log(this.imgsLoaded);
 				return Promise.resolve();
 			}
 		}catch(error) {

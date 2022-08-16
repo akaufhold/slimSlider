@@ -48,7 +48,6 @@ export default class SliderResponsive {
 		} else {
 			this.#opts = Object.assign({}, this.#defaultOptions);
 		}
-		console.log(this.#defaultOptions);
 	}
 
 	#getOverrideOptionsForViewport() {
@@ -78,4 +77,4 @@ export default class SliderResponsive {
 			slider.init();
 		})
 	}
-}
+}  
