@@ -11,10 +11,12 @@
 Build/yarn.lock
 
 *.txt
+*.mp4
+*.webm
 *.log
 *.code-workspace
 
-stackfactory.code-workspace
+*.code-workspace
 index.min.html
 main.css
 main.min.css
