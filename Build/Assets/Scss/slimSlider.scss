@@ -1,16 +1,15 @@
 @import "Base/colors";
-@import "Themes/Colors/colorsets";
 @import "Components/overlay";
 @import "Components/slider";
 @import "Components/transitions";
 @import "Components/ui";
+@import "Themes/colorsets";
 @import "Themes/overlay";
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: inherit;
-  font-family: "Open Sans", Arial, Helvetica, sans-serif;
 }
 
 html {
@@ -21,4 +20,8 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   font-size: 10px;
+}
+
+.slider {
+  font-family: "Open Sans", Arial, Helvetica, sans-serif;
 }
