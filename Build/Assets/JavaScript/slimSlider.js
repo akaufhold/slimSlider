@@ -2,8 +2,10 @@
 
 //import GLTransitions from "gl-transitions";
 
+// IMPORT SCSS
 import '../Scss/slimSlider.scss';
 
+// IMPORT JS CLASSES
 import SliderHelpers from './slimSlider.helpers';
 import SliderWrapper from './slimSlider.wrapper';
 import SliderElement from './slimSlider.element';
@@ -11,6 +13,9 @@ import SliderUI from './slimSlider.ui';
 import SliderLoader from "./slimSlider.loader";
 import SliderResponsive from "./slimSlider.responsive";
 import SliderWebfont from "./slimSlider.webfont";
+
+// IMPORT JS VARS
+import {options as SliderOptions, transitions as SliderTransition} from "./slimSlider.options";
 
 export default class Slider {
 	/* DOM ELEMENTS */
@@ -22,7 +27,7 @@ export default class Slider {
 	/* USER INTERFACE */
 	sliderUI;
 
-	/* INDEXES, IMAGES LENGTH AND INCREMENT */
+	/* INDEXES, IMAGES COUNT, INCREMENT AND INTERVAL */
 	imgCount = 0;
 	curIndex = [0];
 	lastIndex;
@@ -30,7 +35,7 @@ export default class Slider {
 	incIndex = 1;
 	interval;
 
-	/* TOUCH EVENT POSITIONS */
+	/* TOUCH EVENT POSITIONS AND FUNCTIONS */
 	posX1 = 0;
 	posX2 = 0;
 	posY1 = 0;
@@ -43,76 +48,27 @@ export default class Slider {
 	transitionTarget;
 	transitionDefault; 
 
-	/* CSS CLASS DEFAULTS */
+	/* DEFAULT CSS CLASSES  */
 	curElementClass = 'cur-element';
 	prevElementClass = 'prev-element';
 
-	/* CSS DEFAULTS */
+	/* STYLE DEFAULTS */
 	sliderElementsHeights = '100vh';
 
 	/* OPTIONS */
 	opts;
-	options = {
-		autoplay: true,
-		colorTheme:'yellow',
-		controls: {
-			arrows: true,
-			direction: 'horizontal',
-			dots: true,
-			keys: true,
-			dotsCount: 'fitRows', /* fitRows or all/empty */
-			events: true
-		},
-		events: {
-			touch: {
-				threshold: 100
-			}
-		},
-		delay: 6,
-		elementWrapperClass:'slider-image-wrapper',
-		elementType:'picture',
-		elementClass:'slider-image',
-		elementOverlayStyle:'rect',
-		fontFamily: false,
-		headerTag: 'h3',
-		loop: true, 
-		margin: 0,
-		progressBar: true,
-		slidesShow: 1,
-		slidesPerColumn: 1,
-		slidesRowWrap: false,
-		sliderClass:"slider",
-		sliderWrapperClass: "slider-wrapper",
-		transition: 'rect', /* fade, slide or rotate */
-		transitionTiming: 'ease-out',
-		transitionSegments: 10,
-		transitionDuration: 1200,
-		type: 'slider', /* slider or gallery */
-		vignette: false,
-		zoom: true
-	}
 
-	transitions = {
-		fade: 'opacity',
-		slide: 'transform',
-		rotate: 'transform',
-		clip: 'clip',
-		blur: 'transform',
-		circle: 'stroke-width',
-		rect: 'stroke-width',
-		slices: 'transform',
-		tiles: 'transform',
-		'tiles-rotate': 'transform',
-		shutter: 'transform',
-	}
+	/* IMPORTS */
+	options = SliderOptions
+	transitions = SliderTransition
 
 	constructor(
 		sliderContainer,
 		options = {},
 		...images
 	){
-		this.#sliderContainer 	= sliderContainer;
 		this.setOptions(options);
+		this.#sliderContainer 	= sliderContainer;
 		this.opts 		= this.options;
 		this.images 	= images.length ? images : Array.from(this.#loadImagesFromDom());
 		this.imgCount = this.images.length;
@@ -147,7 +103,7 @@ export default class Slider {
 
 	async init() {
 		try{
-			new SliderWebfont(this.opts.fontFamily);
+			new SliderWebfont(this.opts.fontFamily,this.#sliderContainer);
 			this.#setIndexIncrement();
 			this.#setAllIndexes(true);
 			let sliderLoader	= await new SliderLoader(this.images);
