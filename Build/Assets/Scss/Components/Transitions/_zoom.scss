@@ -1,0 +1,10 @@
+.slider,
+.slider-wrapper {
+  .cur-element {
+    &.zoom {
+      .slider-image {
+        animation: zoom var(--animation-duration) forwards;
+      }
+    }
+  }
+}
