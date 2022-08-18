@@ -4,8 +4,10 @@ import WebFont from 'webfontloader';
 
 export default class SliderWebfont {
 	#fontFamily;
+	#sliderContainer;
 
-	constructor(fontFamily) {
+	constructor(fontFamily, sliderContainer) {
+		this.#sliderContainer = sliderContainer;
 		this.#fontFamily = fontFamily;
 		this.#init();
 		this.#addFontFamily();
@@ -22,6 +24,6 @@ export default class SliderWebfont {
 	#addFontFamily() {
 		console.log(this.#fontFamily);
 		let fontTag = this.#fontFamily.map(el => el.split(':')[0]);
-		document.body.style.fontFamily = fontTag;
+		this.#sliderContainer.style.fontFamily = fontTag;
 	}
 }
