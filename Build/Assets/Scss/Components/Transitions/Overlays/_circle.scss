@@ -1,0 +1,17 @@
+.slider,
+.slider-wrapper {
+  .overlay-style-circle {
+    &.slider-image-overlay {
+      transition-delay: .5s;
+      transform: scale(0);
+    }
+  }
+
+  .cur-element {
+    .overlay-style-circle {
+      &.slider-image-overlay {
+        transform: scale(1);
+      }
+    }
+  }
+}

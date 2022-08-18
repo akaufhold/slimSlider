@@ -7,6 +7,8 @@
 @import "Transitions/shutter";
 @import "Transitions/tiles";
 @import "Transitions/zoom";
+@import "Transitions/Overlays/circle";
+@import "Transitions/Overlays/rect";
 
 /* SLIDER TRANSITION STYLES */
 
@@ -34,22 +36,6 @@
         > *:nth-child(#{$i}) {
           animation-delay: calc(.05s * #{$i});
         }
-      }
-    }
-  }
-
-  /* SLIDER OVERLAY STYLES */
-  .overlay-style-circle {
-    &.slider-image-overlay {
-      transition-delay: .5s;
-      transform: scale(0);
-    }
-  }
-
-  .cur-element {
-    .overlay-style-circle {
-      &.slider-image-overlay {
-        transform: scale(1);
       }
     }
   }
