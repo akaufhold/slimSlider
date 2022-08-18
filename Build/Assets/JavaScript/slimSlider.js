@@ -10,6 +10,7 @@ import SliderElement from './slimSlider.element';
 import SliderUI from './slimSlider.ui';
 import SliderLoader from "./slimSlider.loader";
 import SliderResponsive from "./slimSlider.responsive";
+import SliderWebfont from "./slimSlider.webfont";
 
 export default class Slider {
 	/* DOM ELEMENTS */
@@ -53,7 +54,7 @@ export default class Slider {
 	opts;
 	options = {
 		autoplay: true,
-		colorTheme:'navy',
+		colorTheme:'yellow',
 		controls: {
 			arrows: true,
 			direction: 'horizontal',
@@ -71,7 +72,8 @@ export default class Slider {
 		elementWrapperClass:'slider-image-wrapper',
 		elementType:'picture',
 		elementClass:'slider-image',
-		elementOverlayStyle:'circle',
+		elementOverlayStyle:'rect',
+		fontFamily: false,
 		headerTag: 'h3',
 		loop: true, 
 		margin: 0,
@@ -87,7 +89,7 @@ export default class Slider {
 		transitionDuration: 1200,
 		type: 'slider', /* slider or gallery */
 		vignette: false,
-		zoomOnHover: true
+		zoom: true
 	}
 
 	transitions = {
@@ -109,30 +111,19 @@ export default class Slider {
 		options = {},
 		...images
 	){
-		this.setOptions(options);
 		this.#sliderContainer 	= sliderContainer;
+		this.setOptions(options);
 		this.opts 		= this.options;
 		this.images 	= images.length ? images : Array.from(this.#loadImagesFromDom());
-		console.log(this.images);
 		this.imgCount = this.images.length;
 		this.opts.loop && (this.interval = '');
 		this.images.length && this.init();
 		this.dragEnd = this.addUIEventsDragEnd.bind(this);
 		this.dragAction = this.addUIEventsDragAction.bind(this);
 	}
-
+	
 	setOptions(options) {
 		this.#mergeDeep(this.options,options);
-		/*for (const [key,option] of Object.entries(options)){
-			if (Array.isArray(option)) {
-				for (const [childKey,childOption] of Object.entries(option)){
-					console.log(key,childKey,childOption,childOption.length);
-					this.options[key][childKey] = childOption[childKey] || childOption;
-				}
-			}
-			else
-				this.options[key] = options[key] || option;
-		}*/
 	}
 
  	#mergeDeep(target, source) {
@@ -156,10 +147,9 @@ export default class Slider {
 
 	async init() {
 		try{
+			new SliderWebfont(this.opts.fontFamily);
 			this.#setIndexIncrement();
 			this.#setAllIndexes(true);
-			//console.log(new SliderLoader(this.images).imgsLoaded.then());
-			//console.log(this.opts);
 			let sliderLoader	= await new SliderLoader(this.images);
 			this.imgsLoaded = sliderLoader.imgLoaded;
 		}
@@ -680,6 +670,11 @@ const defaultOptions = {
 		events: true
 	},
 	elementType: 'div',
+	fontFamily: [
+		'Catamaran:400,500,600,700,800,900',
+		'Montserrat:400,500,600,700,800,900',
+		'Lato:300,400,700,900'
+	],
 	loop: true,
 	margin: 0,
 	responsive: [
@@ -714,7 +709,7 @@ const defaultOptions = {
 	transitionTiming: 'ease-out',
 	type:'slider', 
 	vignette: true,
-	zoomOnHover: false
+	zoom: true
 }
 
 const slider1 = new SliderResponsive(defaultOptions);
