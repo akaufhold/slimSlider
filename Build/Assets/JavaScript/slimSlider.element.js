@@ -37,6 +37,7 @@ export default class SliderElement {
 		SliderHelpers.setElClass(this.elementnode,this.opts.elementClass);
 		this.#dataAttrCount && this.elementWrapper.appendChild(this.#createElementContentWrapper());
 		this.#createExtraElements(this.opts.transition);
+		this.#setElementProperties(this.opts.transition);
 	}
 
 	#setElementWrapperType(type) {
@@ -44,7 +45,7 @@ export default class SliderElement {
 	}
 
 	isElementWrapped() {
-		return this.elementIsWrapped = (this.opts.vignette || this.opts.zoomOnHover || typeof this.elementnode.dataset==='object') && true;
+		return this.elementIsWrapped = (this.opts.vignette || this.opts.zoom || typeof this.elementnode.dataset==='object') && true;
 	}
 
 	#setElementWrapper() {
@@ -65,7 +66,7 @@ export default class SliderElement {
 
 	#setElementClasses() {
 		this.opts.type === 'gallery' && SliderHelpers.setElClass(this.elementWrapper,'parallel');
-		this.opts.zoomOnHover && SliderHelpers.setElClass(this.elementWrapper,'zoom');
+		this.opts.zoom && SliderHelpers.setElClass(this.elementWrapper,'zoom');
 		this.opts.vignette && SliderHelpers.setElClass(this.elementWrapper,'vignette');
 	}
 
@@ -88,6 +89,11 @@ export default class SliderElement {
 		);
 	}
 
+	#setElementProperties(transition) {
+		this.elementnode.style.setProperty('--animation-duration', `${this.opts.delay}s`);
+		((transition==='circle') || (transition==='rect')) && this.#sliderContainer.style.setProperty('--stroke-width', `${100/this.opts.transitionSegments*2}%`);
+	}
+
 	#createExtraElements(transition) {
 		transition==='circle' && this.#createEECirle();
 		transition==='rect' && this.#createEERect();
@@ -95,7 +101,6 @@ export default class SliderElement {
 		transition==='tiles' && this.#createEEClones(transition);
 		transition==='tiles-rotate' && this.#createEEClones(transition);
 		transition==='shutter' && this.#createEEClones(transition);
-		((transition==='circle') || (transition==='rect')) && this.#sliderContainer.style.setProperty('--stroke-width', `${100/this.opts.transitionSegments*2}%`);
 	}
 
 	#createEECirle(){
