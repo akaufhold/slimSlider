@@ -3,8 +3,13 @@
   .cur-element {
     &.zoom {
       .slider-image {
-        animation: zoom var(--animation-duration) forwards;
+        animation: zoom var(--animation-duration) forwards ease-in-out;
       }
     }
   }
+}
+
+@keyframes zoom {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
 }
