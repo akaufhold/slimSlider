@@ -1,0 +1,14 @@
+.slider,
+.slider-wrapper {
+  &.slide {
+    transition-property: opacity;
+
+    > * {
+      opacity: 1;
+    }
+
+    .cur-element {
+      opacity: 1;
+    }
+  }
+}

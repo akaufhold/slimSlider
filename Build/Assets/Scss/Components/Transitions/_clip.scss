@@ -1,0 +1,14 @@
+.slider,
+.slider-wrapper {
+  &.clip {
+    .slider-image-wrapper {
+      transition: clip-path 0s .91s, -webkit-clip-path 0s .91s;
+      clip-path: circle(0 at 50% 50%);
+
+      &.cur-element {
+        transition: clip-path 2s, -webkit-clip-path 2s;
+        clip-path: circle(100vmax at 50% 50%);
+      }
+    }
+  }
+}

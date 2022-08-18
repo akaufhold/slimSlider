@@ -1,0 +1,22 @@
+.slider,
+.slider-wrapper {
+  &.shutter {
+    .slider-image {
+      opacity: 1;
+    }
+
+    .slider-transition-overlay {
+      .slider-transition-clone {
+        transition-duration: 1.2s;
+      }
+    }
+
+    .cur-element {
+      .slider-transition-overlay {
+        .slider-transition-clone {
+          transform: translate3d(0, 0, 0) !important;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+.slider,
+.slider-wrapper {
+  &.fade {
+    > * {
+      transition-property: opacity;
+      opacity: 0;
+    }
+
+    .cur-element {
+      opacity: 1;
+    }
+  }
+}
