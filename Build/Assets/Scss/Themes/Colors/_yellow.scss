@@ -9,4 +9,9 @@
   --ui-back-color-75: var(--white-75);
   --ui-arrow-color: var(--black);
   --ui-border-color: var(--gray);
+
+  .overlay-style-rect {
+    --text-color: var(--white);
+    --border2-color: var(--white);
+  }
 }
