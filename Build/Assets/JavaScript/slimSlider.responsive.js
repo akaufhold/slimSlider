@@ -1,4 +1,5 @@
 import Slider from './slimSlider';
+import SliderWebfont from "./slimSlider.webfont";
 
 export default class SliderResponsive {
 	#sliders = [];
@@ -21,6 +22,7 @@ export default class SliderResponsive {
 	}
 
 	init() {
+		new SliderWebfont(this.#opts.fontFamily,this.#sliderSelector);
 		this.#setViewport();
 		this.#getBreakpoints();
 		this.#setViewportOptions();
