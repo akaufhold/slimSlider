@@ -68,6 +68,7 @@ export default class SliderElement {
 		this.opts.type === 'gallery' && SliderHelpers.setElClass(this.elementWrapper,'parallel');
 		this.opts.zoom && SliderHelpers.setElClass(this.elementWrapper,'zoom');
 		this.opts.vignette && SliderHelpers.setElClass(this.elementWrapper,'vignette');
+		this.elementnode.querySelector('video')!==null && SliderHelpers.setElClass(this.elementWrapper,'video');
 	}
 
 	#createElementContentWrapper() {
@@ -112,8 +113,8 @@ export default class SliderElement {
 	}
 
 	async #createEEClones(transition){
-		let clonedElements = await SliderHelpers.createClones(this.elementnode,transition,this.opts);
 		this.elementWrapper.style.setProperty('--transition-delay',`${this.opts.transitionDuration/1000}s`);
+		let clonedElements = await SliderHelpers.createClones(this.elementnode,transition,this.opts);
 		this.elementWrapper.insertAdjacentElement('beforeend',clonedElements);
 	}
 }
