@@ -12,7 +12,6 @@ import SliderElement from './slimSlider.element';
 import SliderUI from './slimSlider.ui';
 import SliderLoader from "./slimSlider.loader";
 import SliderResponsive from "./slimSlider.responsive";
-import SliderWebfont from "./slimSlider.webfont";
 
 // IMPORT JS VARS
 import {options as SliderOptions, transitions as SliderTransition} from "./slimSlider.options";
@@ -103,7 +102,6 @@ export default class Slider {
 
 	async init() {
 		try{
-			new SliderWebfont(this.opts.fontFamily,this.#sliderContainer);
 			this.#setIndexIncrement();
 			this.#setAllIndexes(true);
 			let sliderLoader	= await new SliderLoader(this.images);
@@ -486,7 +484,7 @@ export default class Slider {
 			transitionTarget.style.transitionProperty = this.#getCssTransitionProp('transform');
 			this.#setTranslateForTarget(transitionTarget);
 		}
-		SliderHelpers.setElClass(transitionTarget,this.opts.transition);
+		transitionTarget.querySelector('video')!==null && SliderHelpers.startVideo(transitionTarget.querySelector('video'),this.opts.transitionDuration);
 		switch (this.opts.transition) {
 			case 'slide':
 				this.#setTransitionStylesTranslate(transitionTarget);
@@ -595,11 +593,11 @@ export default class Slider {
 		this.sliderElements.forEach(async (el,ind) => {
 			let translateYCloneIndex = Math.floor((ind-this.curIndex[0])/this.opts.slidesShow);
 			let translateYClone = `${100*translateYCloneIndex}%`;
-			await SliderHelpers.waitForElement(`.slider-transition-clone`);
+			//await SliderHelpers.waitForElement(`.slider-transition-clone`);
 			el.querySelectorAll(`.slider-transition-clone`).forEach(clone => {
 				clone.style.transitionProperty = this.#getCssTransitionProp();
 				SliderHelpers.setElStyle(clone,'transform',`translateY(${translateYClone})`);
-			})
+			});
 		})
 	}
 
@@ -617,14 +615,15 @@ export default class Slider {
 /* TEST DATA */
 
 const defaultOptions = {
-	delay: 20,
+	delay: 106,
 	controls: {
 		arrows: true,
-		direction: 'vertical',
+		direction: 'horizontal',
 		dots: true,
 		dotsCount: 'fitRows', /* fitRows or all/empty */
 		events: true
 	},
+	colorTheme:'purple',
 	elementType: 'div',
 	fontFamily: [
 		'Catamaran:400,500,600,700,800,900',
@@ -660,12 +659,12 @@ const defaultOptions = {
 	sliderClass: 'slider',
 	slidesShow: 1,
 	slidesRowWrap: true,
-	transition: 'circle',
+	transition: 'slices',
 	transitionSegments: 10,
 	transitionTiming: 'ease-out',
 	type:'slider', 
 	vignette: true,
-	zoom: true
+	zoom: false
 }
 
 const slider1 = new SliderResponsive(defaultOptions);
