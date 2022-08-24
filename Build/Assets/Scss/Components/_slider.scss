@@ -23,7 +23,7 @@
 
     .slider-image-wrapper,
     .slider-image {
-
+      backface-visibility: hidden;
       transform-style: preserve-3d;
       will-change: auto;
       z-index: 1;
