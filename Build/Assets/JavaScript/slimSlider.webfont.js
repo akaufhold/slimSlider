@@ -22,8 +22,10 @@ export default class SliderWebfont {
 	};
 
 	#addFontFamily() {
-		console.log(this.#fontFamily);
 		let fontTag = this.#fontFamily.map(el => el.split(':')[0]);
-		this.#sliderContainer.style.fontFamily = fontTag;
+		this.#sliderContainer.forEach(el => {
+			el.style.fontFamily = '';
+			el.style.fontFamily = fontTag;
+		})
 	}
 }
