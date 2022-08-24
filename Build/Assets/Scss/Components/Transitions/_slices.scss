@@ -8,13 +8,16 @@
 
     .slider-image-overlay {
       transition-delay: 1s;
+      transition-duration: .5s;
       z-index: 10;
       opacity: 0;
+      background: linear-gradient(var(--back-color), transparent);
     }
 
     .slider-transition-overlay {
       display: flex;
       flex-direction: row;
+      opacity: 1;
 
       .slider-transition-clone {
         height: 100%;
@@ -33,6 +36,15 @@
       }
     }
 
+    .prev-element {
+      z-index: unset !important;
+
+      .slider-image {
+        opacity: 0;
+        transition-delay: var(--transition-delay);
+      }
+    }
+
     .cur-element {
       .slider-image {
         opacity: 1;
@@ -41,16 +53,48 @@
 
       .slider-image-overlay {
         z-index: 51;
+        transition-delay: var(--transition-delay);
         opacity: 1;
       }
 
       .slider-transition-overlay {
+        animation-name: sliderOverlay;
+        animation-fill-mode: forwards;
+        animation-duration: calc(var(--transition-delay) + 1s);
+
         .slider-transition-clone {
+          backface-visibility: hidden;
+
           .slider-transition-clone-img {
-            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            animation-name: cloneTransition;
+            animation-fill-mode: forwards;
+            animation-duration: var(--transition-delay);
+            animation-delay: 0;
+            opacity: 1;
           }
         }
       }
     }
+  }
+}
+
+@keyframes sliderOverlay {
+  0% {
+    opacity: 1;
+  }
+
+  99% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes cloneTransition {
+  100% {
+    transform: translate3d(0, 0, 0);
   }
 }
