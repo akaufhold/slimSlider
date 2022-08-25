@@ -2,31 +2,50 @@
   .slider-image-overlay {
     &.overlay-style-rect {
       background: transparent;
-      height: 30em;
+      height: 35em;
       max-width: 75%;
       width: 100em;
 
       .slider-header {
-        min-height: 30%;
-        line-height: .8;
-        display: flex;
         align-items: flex-end;
         align-self: center;
+        color: var(--header-color);
+        text-shadow: 1px 1px 0 var(--shadow-color);
+        display: flex;
+        flex-direction: column;
+        font-size: 6.5em;
         justify-content: center;
-        border-bottom: 2px solid var(--border2-color);
-        padding-bottom: 3%;
+        line-height: .8;
+        min-height: 30%;
+        position: relative;
+
+        &::after {
+          align-self: center;
+          background: var(--border-color);
+          content: "";
+          display: flex;
+          margin-top: 1.75rem;
+          height: 5px;
+          width: 50px;
+        }
       }
 
       .slider-description {
-        padding-top: 3%;
+        align-self: center;
+        font-size: 2em;
+        padding-top: 1.5rem;
         min-height: 30%;
+        max-width: 500px;
+        position: relative;
+        text-shadow: 1px 1px 0 var(--shadow-color);
       }
 
       .slider-link {
+        align-self: center;
         flex: 0 1 auto;
         font-size: 1.6em;
-        // width: 100px;
-        align-self: center;
+        margin-top: 1.25rem;
+        text-shadow: 1px 1px 0 var(--shadow-color);
       }
     }
   }
