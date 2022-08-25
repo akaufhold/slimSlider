@@ -23,6 +23,9 @@ let options = {
 	headerTag: 'h3',
 	loop: true, 
 	margin: 0,
+	overlay: {
+		button: 'scale',
+	},
 	progressBar: true,
 	slidesShow: 1,
 	slidesPerColumn: 1,
