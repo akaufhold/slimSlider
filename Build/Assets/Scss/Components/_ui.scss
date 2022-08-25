@@ -9,6 +9,7 @@
     top: 0;
     flex-direction: column;
     justify-content: space-between;
+    pointer-events: none;
 
     .slider-ui-dots {
       background: rgb(75 75 75 / 0%);
@@ -21,6 +22,7 @@
       width: fit-content;
       align-self: center;
       justify-self: center;
+      pointer-events: all;
 
       &:hover {
         background: rgb(0 0 0 / 35%);
@@ -78,6 +80,7 @@
         transition-duration: .3s;
         width: 4rem;
         align-self: center;
+        pointer-events: all;
 
         &::before,
         &::after {
