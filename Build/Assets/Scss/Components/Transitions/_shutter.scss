@@ -5,7 +5,19 @@
       opacity: 1;
     }
 
+    .prev-element {
+      .slider-image {
+        opacity: 1;
+      }
+    }
+
     .slider-transition-overlay {
+      .slider-transition-clone-imgback {
+        position: absolute;
+        z-index: -1;
+        top: 0;
+      }
+
       .slider-transition-clone {
         transition-duration: 1.2s;
       }
