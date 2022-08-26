@@ -1,0 +1,24 @@
+@keyframes sliderOverlay {
+  0% {
+    opacity: 1;
+  }
+
+  99% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes tiles {
+  0% { transform: rotateY(-45deg) scale(.5); }
+  100% { transform: rotateX(0) rotateY(0) scale(1.01) rotateZ(0) translate3d(0, 0, 0); }
+}
+
+@keyframes cloneTransition {
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
