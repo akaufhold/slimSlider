@@ -127,6 +127,7 @@ export default class SliderElement {
 
 	async #createEEClones(transition) {
 		this.elementWrapper.style.setProperty('--transition-delay',`${this.opts.transitionDuration/1000}s`);
+		this.elementWrapper.style.setProperty('--transition-duration',`${this.opts.transitionDuration/1000}s}`);
 		let clonedElements = await this.#createClones(this.elementnode,transition,this.opts);
 		this.elementWrapper.insertAdjacentElement('beforeend',clonedElements);
 	}
@@ -156,8 +157,8 @@ export default class SliderElement {
 		let loadedImg = await SliderHelpers.getLoadedElement(sliderElement,sliderElement.localName);
 		for (var x = 0; x < options.transitionSegments; x++) {
 			let clone = document.createElement('div');
-			this.#createCloneSliceStyle(clone, options, x, cloneType, translateY);
 			let cloneElement = await this.#createCloneElement(sliderElement, loadedImg, x, '_', cloneType);
+			this.#createCloneSliceStyle(clone, options, x, cloneType, translateY);
 			(cloneType=='shutter') && SliderHelpers.setElStyle(cloneElement,'transform',`translate3d('-10%',0,0)`);
 			SliderHelpers.setElClass(cloneElement,`slider-transition-clone-img`);
 			clone.appendChild(cloneElement);
@@ -186,11 +187,13 @@ export default class SliderElement {
 
 	async #createCloneTiles(sliderElement, cloneWrapper, options, cloneType) {
 		let loadedImg = await SliderHelpers.getLoadedElement(sliderElement);
+		//sliderElement.localName==='video' && SliderHelpers.pauseVideo(sliderElement,0);
 		for (let y = 0; y < options.transitionSegments; y++) {
 			for (let x = 0; x < options.transitionSegments; x++) {
 				let clone = document.createElement('div');
 				this.#createCloneTilesStyle(clone, options, cloneType, x, y);
 				let cloneElement = await this.#createCloneElement(sliderElement, loadedImg, x, y, cloneType);
+				SliderHelpers.setElClass(cloneElement,`slider-transition-clone-img`);
 				clone.appendChild(cloneElement);
 				cloneWrapper.appendChild(clone);
 			}
@@ -203,14 +206,15 @@ export default class SliderElement {
 		let translateY = `${50*(y-(options.transitionSegments/2))}%`;
 		let transitionDuration = `${(options.transitionDuration-((options.transitionDuration/options.transitionSegments)*x))/1000}s`;
 		let transitionDelay = `${(x+y/(options.transitionSegments*2-x))*options.transitionSegments/options.transitionSegments/1000*(options.transitionDuration/options.transitionSegments)}s`;
+		cloneType === 'tiles-rotate' && (transitionDelay = `${(x * options.transitionDuration/10000 + y * options.transitionDuration/10000)}s`);
 		cloneType=='tiles' && SliderHelpers.setElStyle(clone,'transform',`translate3d(${translateX},${translateY},0)`);
-		cloneType=='tiles-rotate' && SliderHelpers.setElStyle(clone,'transform',`rotateX(90deg)`);
 		SliderHelpers.setElStyle(clone,'transitionDuration',transitionDuration);
+		SliderHelpers.setElStyle(clone,'animationDuration',transitionDuration);
 		SliderHelpers.setElStyle(clone,'transitionDelay',transitionDelay);
 		SliderHelpers.setElStyle(clone,'animationDelay',transitionDelay);
 		SliderHelpers.setElClass(clone,`slider-transition-clone`);
-		SliderHelpers.setElStyle(clone,'width',`calc(100%/${options.transitionSegments})`);
-		SliderHelpers.setElStyle(clone,'height',`calc(100%/${options.transitionSegments})`)
+		SliderHelpers.setElStyle(clone,'width',`${100/options.transitionSegments}%`);
+		SliderHelpers.setElStyle(clone,'height',`${100/options.transitionSegments}%`);
 		SliderHelpers.setCssTransitionTiming(clone,options.transitionTiming);
 	}
 	
@@ -218,7 +222,6 @@ export default class SliderElement {
 
 	async #createCloneElement(sliderElement, loadedElement, x, y, cloneType) {
 		let clonedImg;
-		//console.log(sliderElement.localName, sliderElement, loadedElement, x, y, cloneType);
 		sliderElement.localName==='img' && (clonedImg = this.#createCloneImage(sliderElement, loadedElement, x, y, cloneType));
 		sliderElement.localName==='video' && (clonedImg = this.#createCloneVideoCanvas(sliderElement, loadedElement, x, y, cloneType));
 		return clonedImg;
@@ -230,7 +233,7 @@ export default class SliderElement {
 		clonedImg.width = loadedImg.target.clientWidth;
 		clonedImg.height = loadedImg.target.clientHeight;
 		clonedImg.style.left = `${x*-100}%`;
-		cloneType === 'tiles' && (clonedImg.style.top = `${y*-100}%`);
+		cloneType.includes('tiles') && (clonedImg.style.top = `${y*-100}%`);
 		SliderHelpers.setElClass(clonedImg,`slider-transition-clone-img`);
 		return clonedImg;
 	};
@@ -238,14 +241,14 @@ export default class SliderElement {
 	#createCloneVideoCanvas(sliderElement, loadedElement, x, y, cloneType) {
 		let canvas = document.createElement('canvas');
 		let {clientWidth:width, clientHeight:height} = loadedElement.target;
-		Object.assign(canvas,{width, height})
+		Object.assign(canvas,{width, height});
 		canvas.style.left = `${x*-100}%`;
-		cloneType === 'tiles' && (canvas.style.top = `${y*-100}%`);
+		cloneType.includes('tiles') && (canvas.style.top = `${y*-100}%`);
 		x ==='back' && (canvas.classList.add(`slider-transition-clone-img${x}`));;
 		sliderElement.addEventListener("seeked", function(e){
-			let ctx = canvas.getContext("2d")
+			let ctx = canvas.getContext("2d");
 			ctx.drawImage(sliderElement, 0, 0, width, height);
-			ctx.filter = 'contrast(110%)';
+			ctx.filter = 'contrast(100%)';
 		}, {once : true})
 
 		return canvas;

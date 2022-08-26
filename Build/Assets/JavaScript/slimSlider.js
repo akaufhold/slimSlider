@@ -135,10 +135,7 @@ export default class Slider {
 			try{
 				let parentWrapper = this.#sliderContainer;
 				this.#createSliderElements();
-				//if ((this.opts.slidesShow > 1) || (!this.opts.slidesRowWrap)){
-					this.sliderWrapper = parentWrapper = this.#createSliderWrapper();	
-				//}
-	
+				this.sliderWrapper = parentWrapper = this.#createSliderWrapper();	
 				this.#setContainerCss(parentWrapper);
 				res();
 			}
@@ -432,7 +429,7 @@ export default class Slider {
 	async #slideTransition(start = true, target = 'right') {
 		try{
 			SliderHelpers.rmElClass(this.#sliderContainer,'progress');
-			await SliderHelpers.wait(0.001);
+			await SliderHelpers.wait(0.002);
 			let isSelected = this.#checkIndexSelectedAlready(target);
 			if (!start && !isSelected){
 				this.#setAllIndexes(false, target);
@@ -484,7 +481,8 @@ export default class Slider {
 			transitionTarget.style.transitionProperty = this.#getCssTransitionProp('transform');
 			this.#setTranslateForTarget(transitionTarget);
 		}
-		transitionTarget.querySelector('video')!==null && SliderHelpers.startVideo(transitionTarget.querySelector('video'),this.opts.transitionDuration);
+		SliderHelpers.setElClass(transitionTarget,this.opts.transition);
+		transitionTarget.querySelector('video')!==null && SliderHelpers.startVideo(transitionTarget.querySelector(`.${this.curElementClass}`).querySelector('video'),this.opts.transitionDuration);
 		switch (this.opts.transition) {
 			case 'slide':
 				this.#setTransitionStylesTranslate(transitionTarget);
@@ -498,7 +496,7 @@ export default class Slider {
 			case 'tiles':
 				this.#setTransitionStylesTiles(transitionTarget);
 				break;
-			case 'tilesRotate':
+			case 'tiles-rotate':
 				this.#setTransitionStylesTiles(transitionTarget);
 				break;
 			default:
@@ -625,6 +623,7 @@ const defaultOptions = {
 	},
 	colorTheme:'purple',
 	elementType: 'div',
+	elementOverlayStyle: 'rect',
 	fontFamily: [
 		'Catamaran:400,500,600,700,800,900',
 		'Montserrat:400,500,600,700,800,900',
@@ -659,8 +658,8 @@ const defaultOptions = {
 	sliderClass: 'slider',
 	slidesShow: 1,
 	slidesRowWrap: true,
-	transition: 'slices',
-	transitionSegments: 10,
+	transition: 'tiles',
+	transitionSegments: 5,
 	transitionTiming: 'ease-out',
 	type:'slider', 
 	vignette: true,

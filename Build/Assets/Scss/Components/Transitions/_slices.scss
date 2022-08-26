@@ -65,6 +65,9 @@
 
         .slider-transition-clone {
           backface-visibility: hidden;
+          border-radius: 0;
+          opacity: 1;
+          transition-property: opacity, border-radius;
 
           .slider-transition-clone-img {
             backface-visibility: hidden;
@@ -77,25 +80,5 @@
         }
       }
     }
-  }
-}
-
-@keyframes sliderOverlay {
-  0% {
-    opacity: 1;
-  }
-
-  99% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes cloneTransition {
-  100% {
-    transform: translate3d(0, 0, 0);
   }
 }

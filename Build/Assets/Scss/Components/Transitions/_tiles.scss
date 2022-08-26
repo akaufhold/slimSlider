@@ -24,6 +24,8 @@
         overflow: hidden;
         border-radius: 20px;
         filter: saturate(0);
+        transform: scale(1);
+        transition-property: none;
 
         .slider-transition-clone-img {
           position: absolute;
@@ -38,41 +40,71 @@
     }
 
     .prev-element {
+      z-index: unset !important;
+
       .slider-image {
         display: block;
+        opacity: 0;
+        transition-delay: var(--transition-delay);
       }
 
-      .slider-transition-overlay {
+      /* .slider-transition-overlay {
         .slider-transition-clone {
           transform: translate3d(0, 0, 0) !important;
           transition-duration: 0 !important;
         }
-      }
+      } */
     }
 
     .cur-element {
       .slider-image {
-        display: none;
+        opacity: 1;
         transition-delay: var(--transition-delay);
       }
 
       .slider-image-overlay {
         z-index: 51;
+        transition-delay: var(--transition-delay);
         opacity: 1;
       }
 
       .slider-transition-overlay {
+        animation-name: sliderOverlay;
+        animation-fill-mode: forwards;
+        animation-duration: calc(var(--transition-delay) + 1s);
+
         .slider-transition-clone {
+          animation-name: tiles;
+          animation-fill-mode: forwards;
           border-radius: 0;
-          opacity: 1;
-          transition-delay: .5s;
-          transform: rotateX(0) rotateY(0) rotateZ(0) translate3d(0, 0, 0) !important;
           filter: saturate(1);
+          opacity: 1;
+          transition-property: opacity, border-radius;
 
           .slider-transition-clone-img {
             transform: translateY(0%);
           }
         }
+      }
+    }
+  }
+
+  &.tiles-rotate {
+    .slider-image,
+    .slider-image-wrapper {
+      .slider-transition-overlay {
+        perspective: 800px;
+      }
+
+      .slider-transition-clone {
+        transform-origin: bottom;
+        animation-duration: unset;
+        animation-delay: unset;
+        transition-duration: unset;
+        transition-delay: unset;
+        transition-property: none;
+        transform: rotateY(-45deg) scale(.5);
+        //transition: all .6s cubic-bezier(.71, .05, .09, .91);
       }
     }
   }
