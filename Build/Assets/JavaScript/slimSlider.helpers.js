@@ -127,6 +127,10 @@ export default class SliderHelpers {
 		setTimeout( function(){
 			video.currentTime = 0;
 			video.play();
-		},1000);
+		},delay);
+	}
+
+	static pauseVideo(video, delay) {
+		video.pause();
 	}
 }

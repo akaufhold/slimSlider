@@ -54,7 +54,6 @@ export default class SliderUI {
 	init() {
 		this.controlContainer = document.createElement('div');
 		this.controlContainer.classList.add(this.#controlCssClasses.container.name);
-		console.log(this.#opts);
 		this.#opts.controls.direction && this.controlContainer.classList.add(this.#opts.controls.direction);
 		this.#opts.controls.arrows && this.#addUIArrows();
 		this.#opts.controls.dots && this.#addUIDots();
