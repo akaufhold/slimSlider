@@ -36,8 +36,9 @@ export default class SliderWrapper {
 		try {
 			let imagesTarget = this.#getImagesForWrapperMaxHeight();
 			let sliderElementsHeights = await Promise.all(imagesTarget.map(async (el,index) => {
-				await SliderHelpers.waitForElement(`.${this.#opts.sliderWrapperClass}`,10);
-				return Number(parseInt(window.getComputedStyle(el).height));
+				let elementClass = `.${this.#opts.sliderClass} .${this.#opts.sliderWrapperClass} > *:nth-child(${index+1})`;
+				await SliderHelpers.waitForElement(elementClass,200);
+				return Number(parseInt(window.getComputedStyle(document.querySelectorAll(elementClass)[0]).height));
 			}));
 			return Math.min(...sliderElementsHeights);
 		}
@@ -45,7 +46,7 @@ export default class SliderWrapper {
 			console.error(
 				`Error in 'SliderHelpers.waitForElement' \r\n 
 				Promise for following elements could not be resolved:\r\n`,
-				this.allSliderElements,
+				err,
 				`Element heights could not be returned \r\n`
 			);
 		}
