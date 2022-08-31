@@ -3,7 +3,7 @@
   &.tiles,
   &.tiles-rotate {
     .slider-image {
-      display: none;
+      opacity: 0;
     }
 
     .slider-image-overlay {
