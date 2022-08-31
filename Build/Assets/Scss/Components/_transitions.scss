@@ -10,6 +10,7 @@
 @import "Transitions/zoom";
 @import "Transitions/Overlays/circle";
 @import "Transitions/Overlays/rect";
+@import "Transitions/Overlays/twoheads";
 
 /* SLIDER TRANSITION STYLES */
 
@@ -43,8 +44,8 @@
 
   &.progress {
     .slider-ui {
-      .progress-wrapper {
-        .progress-bar {
+      .slider-ui-progress-wrapper {
+        .slider-ui-progress-bar {
           animation: progressBar linear;
         }
       }

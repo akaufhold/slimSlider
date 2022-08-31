@@ -432,6 +432,7 @@ export default class Slider {
 			await SliderHelpers.wait(0.002);
 			let isSelected = this.#checkIndexSelectedAlready(target);
 			if (!start && !isSelected){
+				this.sliderElements[this.curIndex].localName==='video' && SliderHelpers.pauseVideo(this.sliderElements[this.curIndex],0);
 				this.#setAllIndexes(false, target);
 				this.opts.controls.dots && this.sliderUI.setActiveDot(this.curIndex);
 			}
@@ -623,7 +624,7 @@ const defaultOptions = {
 	},
 	colorTheme:'purple',
 	elementType: 'div',
-	elementOverlayStyle: 'rect',
+	elementOverlayStyle: 'twoheads',
 	fontFamily: [
 		'Catamaran:400,500,600,700,800,900',
 		'Montserrat:400,500,600,700,800,900',
