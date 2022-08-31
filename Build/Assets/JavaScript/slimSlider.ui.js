@@ -25,10 +25,19 @@ export default class SliderUI {
 				}
 			},
 			progress: {
-				name: 'progress-wrapper',
+				name: 'slider-ui-progress-wrapper',
 				progressBar: {
-					name: 'progress-bar'
+					name: 'slider-ui-progress-bar'
 				}
+			},
+			numbers: {
+				name: 'slider-ui-number-wrapper',
+				curIndex: {
+					name: 'slider-ui-number-cur'
+				},
+				maxIndex: {
+					name: 'slider-ui-number-max'
+				},
 			}
 		}
 	};	
@@ -57,7 +66,8 @@ export default class SliderUI {
 		this.#opts.controls.direction && this.controlContainer.classList.add(this.#opts.controls.direction);
 		this.#opts.controls.arrows && this.#addUIArrows();
 		this.#opts.controls.dots && this.#addUIDots();
-		this.#opts.progressBar && this.#addProgressBar();
+		this.#opts.controls.progressBar && this.#addProgressBar();
+		this.#opts.controls.numbers && this.#addNumbers();
 		this.#sliderContainer.appendChild(this.controlContainer);
 		this.#opts.controls.dots && this.setActiveDot(this.#opts.controls.dotsCount==='fitRows'?[0]:[...Array(this.#opts.slidesShow).keys()]); 
 	}
@@ -78,10 +88,6 @@ export default class SliderUI {
 		arrow.setAttribute('tabindex', '0');
 		this.arrowContainer.wrapper.appendChild(arrow);
 		return arrow;
-	}
-
-	#addProgressBar() {
-		this.controlContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.progress.name}"><div class="${this.#controlCssClasses.container.progress.progressBar.name}" style="animation-duration: ${this.#opts.delay}s"></div></div>`);
 	}
 
 	#addUIDots() {
@@ -118,4 +124,13 @@ export default class SliderUI {
 			document.querySelector(`.${this.#controlCssClasses.container.dotContainer.dot.name}[data-slide="${el}"]`).classList.add('dot-active');
 		})
 	}
+
+	#addProgressBar() {
+		this.controlContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.progress.name}"><div class="${this.#controlCssClasses.container.progress.progressBar.name}" style="animation-duration: ${this.#opts.delay}s"></div></div>`);
+	}
+
+	#addNumbers() {
+		this.controlContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.progress.name}"><div class="${this.#controlCssClasses.container.progress.progressBar.name}" style="animation-duration: ${this.#opts.delay}s"></div></div>`);
+	}
+
 }

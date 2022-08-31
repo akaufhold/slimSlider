@@ -5,9 +5,11 @@ let options = {
 		arrows: true,
 		direction: 'horizontal',
 		dots: true,
-		keys: true,
 		dotsCount: 'fitRows', /* fitRows or all/empty */
-		events: true
+		events: true,
+		keys: true,
+		numbers: true,
+		progressBar: true
 	},
 	events: {
 		touch: {
@@ -26,7 +28,6 @@ let options = {
 	overlay: {
 		button: 'scale',
 	},
-	progressBar: true,
 	slidesShow: 1,
 	slidesPerColumn: 1,
 	slidesRowWrap: false,
@@ -37,6 +38,7 @@ let options = {
 	transitionSegments: 10,
 	transitionDuration: 1200,
 	type: 'slider', /* slider or gallery */
+	videoScreenOn: 'seeked',
 	vignette: false,
 	zoom: true
 }

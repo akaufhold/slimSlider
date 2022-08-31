@@ -190,7 +190,7 @@
       }
     }
 
-    .progress-wrapper {
+    .slider-ui-progress-wrapper {
       inset: auto auto 2px;
       width: 100%;
       margin-top: 0;
@@ -199,7 +199,7 @@
       transform: translate(0);
       z-index: 10;
 
-      .progress-bar {
+      .slider-ui-progress-bar {
         background-color: var(--ui-back-color-75);
         border-radius: 50%;
         display: block;
