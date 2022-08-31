@@ -1,19 +1,27 @@
 .slider-color-purple {
-  --text-color: var(--black);
+  --text-color: var(--white);
   --back-color: var(--purple1);
   --border-color: var(--purple1);
-  --border2-color: var(--black);
-  --shadow-color: var(--black-75);
+  --border2-color: var(--white);
+  --header-color: var(--white);
   --link-color: var(--purple1);
+  --shadow-color: var(--black-75);
   --stroke-color: var(--purple1);
   --ui-back-color: var(--white);
   --ui-back-color-75: var(--white-75);
   --ui-arrow-color: var(--black);
   --ui-border-color: var(--gray);
 
-  .overlay-style-rect {
-    --header-color: var(--white);
-    --text-color: var(--white);
-    --border2-color: var(--white);
+  .overlay-style-circle {
+    --header-color: var(--black);
+    --text-color: var(--black);
+    --border2-color: var(--black);
+  }
+
+  .overlay-style-twoheads {
+    .slider-link {
+      color: var(--white);
+      background: rgb(0 0 0 / 0%) linear-gradient(90deg, var(--purple3) 0%, var(--purple2) 100%) repeat scroll 0% 0%;
+    }
   }
 }
