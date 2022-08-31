@@ -13,12 +13,19 @@
     position: relative;
     z-index: 10;
 
-    .slider-header {
-      color: var(--text-color);
-      font-size: 4.5em;
-      font-weight: 700;
-      text-transform: uppercase;
-      text-align: center;
+    .slider-header-wrap {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+
+      .slider-header {
+        color: var(--text-color);
+        font-size: 4.5em;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-align: center;
+        white-space: nowrap;
+      }
     }
 
     .slider-description {
