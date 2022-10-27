@@ -130,7 +130,7 @@ export default class SliderUI {
 	}
 
 	#addNumbers() {
-		this.controlContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.progress.name}"><div class="${this.#controlCssClasses.container.progress.progressBar.name}" style="animation-duration: ${this.#opts.delay}s"></div></div>`);
+		this.controlContainer.insertAdjacentHTML('beforeEnd',`<div class="${this.#controlCssClasses.container.numbers.name}"><div class="${this.#controlCssClasses.container.numbers.curIndex.name}"></div><div class="${this.#controlCssClasses.container.numbers.maxIndex.name}"></div></div>`);
 	}
 
 }
