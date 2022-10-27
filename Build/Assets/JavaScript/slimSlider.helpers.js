@@ -68,7 +68,6 @@ export default class SliderHelpers {
 	static waitForElement(querySelector, timeout) {
 		return new Promise((resolve, reject)=> {
 			var timer = false;
-			//console.log(querySelector);
 			if(document.querySelectorAll(querySelector).length) return resolve();
 			const observer = new MutationObserver(() => {
 				if(document.querySelectorAll(querySelector).length) {
@@ -115,7 +114,7 @@ export default class SliderHelpers {
 	}
 
 	static getLoadedElement(element, type) {
-		let eventType = (type==='video'?'seeked':'load');
+		let eventType = (type==='video'?'seeked':'DOMContentLoaded');
 		return new Promise(function (resolve, reject) {
 			element.addEventListener(eventType,resolve);
 			element.addEventListener('error', () => reject(new Error(`Failed to load img > ${element.src}`)), false);
@@ -130,7 +129,9 @@ export default class SliderHelpers {
 		},delay);
 	}
 
-	static pauseVideo(video, delay) {
-		video.pause();
+	static pauseVideo(video, delay=0) {
+		setTimeout( function(){
+			video.pause();
+		},delay);
 	}
 }
