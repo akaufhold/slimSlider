@@ -659,7 +659,7 @@ const defaultOptions = {
 	sliderClass: 'slider',
 	slidesShow: 1,
 	slidesRowWrap: true,
-	transition: 'tiles',
+	transition: 'slices',
 	transitionSegments: 5,
 	transitionTiming: 'ease-out',
 	type:'slider', 
