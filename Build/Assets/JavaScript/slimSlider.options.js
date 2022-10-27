@@ -33,12 +33,11 @@ let options = {
 	slidesRowWrap: false,
 	sliderClass:"slider",
 	sliderWrapperClass: "slider-wrapper",
-	transition: 'rect', /* fade, slide or rotate */
+	transition: 'slices', /* fade, slide or rotate */
 	transitionTiming: 'ease-out',
 	transitionSegments: 10,
 	transitionDuration: 1200,
 	type: 'slider', /* slider or gallery */
-	videoScreenOn: 'seeked',
 	vignette: false,
 	zoom: true
 }
